@@ -1,76 +1,163 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Restaurant Reserve (Next.js + Prisma)
 
-## Getting Started
+Full-stack reservation & preorder app for restaurants. Users can sign in with magic links, choose a role (Owner or Diner), and then:
+- **Owners**: create a restaurant, manage tables/menu (WIP), accept/decline reservations.
+- **Diners**: browse restaurants and make reservations (with optional pre-order).
 
-First, run the development server:
+## Tech Stack
+- Next.js (App Router) + TypeScript
+- Tailwind + shadcn/ui
+- Auth.js (NextAuth) — Email magic links via Resend
+- Prisma ORM + SQLite (dev)
+- Polling (no websockets)
 
+---
+
+## Prerequisites
+
+- **Node 20+** (recommended Node 20 LTS)
+- **nvm** installed (recommended)
+  The repo includes an **`.nvmrc`**. From the project root:
+  ```bash
+  nvm use    # switches to the correct Node version
+  ```
+  If you don’t use nvm, ensure `node -v` shows **v20.x** or newer.
+
+- **Resend account** (for magic-link email) with a verified sending domain (or use Resend’s test mode).
+- **npm** (comes with Node).
+
+---
+
+## Quick Start
+
+### 1) Clone + install
+```bash
+git clone <your-repo-url> restaurant-reserve
+cd restaurant-reserve
+nvm use                 # optional but recommended
+npm install
+```
+
+### 2) Environment variables
+Create `.env.local` in the project root (you can also commit an `.env.example`):
+
+```env
+# Prisma
+DATABASE_URL="file:./dev.db"
+
+# NextAuth / Auth.js
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="replace-with-a-long-random-string"
+
+# Resend
+RESEND_API_KEY="re_XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+EMAIL_FROM="auth@your-verified-domain.com"
+```
+
+> Make sure the `EMAIL_FROM` domain is verified in Resend.
+
+### 3) Database (Prisma + SQLite)
+Run initial migration (creates `prisma/dev.db`) and generate the Prisma Client:
+```bash
+npx prisma migrate dev --name init_app
+npx prisma generate
+```
+
+### 4) Seed (demo data + owner)
+The seed script creates a demo owner and a sample restaurant.
+```bash
+npx prisma db seed
+```
+- The owner email is defined at the top of `prisma/seed.js` (default: `owner@example.com`).
+- Sign in with that email to access `/owner`.
+
+### 5) Start the app
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+Visit http://localhost:3000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**First login flow:**
+- Sign in with your email (magic link via Resend).
+- You’ll be taken to **/onboarding** to choose **Owner** or **Diner**.
+- Owners land on **/owner**; Diners go to **/restaurants**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Cheatsheet (Prisma & DB)
 
-## Learn More
+### Change the schema (add/modify models)
+1. **Create a migration** (also updates SQLite):
+   ```bash
+   npx prisma migrate dev --name <your_change>
+   ```
+2. **Regenerate Prisma Client** (TypeScript types):
+   ```bash
+   npx prisma generate
+   ```
+> `migrate dev` usually triggers `generate`, but running both is a safe habit during development.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-### Cheatsheet
-
-Run prisma migration
-
-```
-npx prisma migrate dev --name <name-here>
-```
-
-Resend:
-
-https://resend.com/domains/efa946cc-4763-4396-a2be-f8474a67c726
-
-Open prisma studio:
-
-```
+### Open Prisma Studio
+```bash
 npx prisma studio
 ```
 
-After changing your schema.prisma you always need to:
-
-    Run a migration (so SQLite updates its schema)
-
-    Regenerate the Prisma Client (so TypeScript knows about the new models)
-
-For your case:
-
-# 1) Save the DB changes (creates migration SQL & updates SQLite)
-
-npx prisma migrate dev --name app_models
-
-# 2) Regenerate the Prisma Client
-
-npx prisma generate
-
-Reset the db:
-
+### Seed the DB
+```bash
+npx prisma db seed
 ```
+- Runs the script defined in `package.json` → `"prisma": { "seed": "node prisma/seed.js" }`.
+- The seed **creates/updates** the demo owner (role `OWNER`) and assigns `ownerId` to the sample restaurant.
+
+### Reset the DB (drops & recreates)
+```bash
 npx prisma migrate reset
 ```
+- Recreates the database and **automatically runs the seed**.
+
+---
+
+## Scripts
+
+- `npm run dev` — start Next.js in dev mode
+- `npm run build` — production build
+- `npm start` — start production server
+- `npx prisma studio` — DB UI
+- `npx prisma migrate dev --name <name>` — add migration
+- `npx prisma generate` — regenerate client
+- `npx prisma migrate reset` — drop & recreate DB (runs seed)
+- `npx prisma db seed` — run seeding only
+
+---
+
+## Roles & Access
+
+- On first login, users choose a role:
+  - **Owner**: access `/owner` (create/manage restaurant, manage reservations).
+  - **Diner**: browse `/restaurants`, open a restaurant page, and reserve.
+- The middleware restricts `/owner/**` to users with role `OWNER` and forces onboarding if no role is set.
+
+---
+
+## Troubleshooting
+
+- **“Module not found: Can't resolve 'nodemailer'”**
+  Auth.js’s email provider imports `nodemailer` even if you send via Resend. Install it to satisfy the import:
+  ```bash
+  npm i nodemailer
+  ```
+  (Alternatively, use a custom provider that calls Resend directly.)
+
+- **Magic link not arriving**
+  - Check `RESEND_API_KEY` and `EMAIL_FROM`.
+  - Verify sending domain in Resend.
+  - For local dev, consider Resend test mode or a catch-all inbox.
+
+---
+
+## Folder Highlights
+
+- `src/app` — Next.js App Router routes (`/restaurants`, `/owner`, API routes under `/api/**`)
+- `src/lib` — Prisma client, Auth config, helpers
+- `prisma/schema.prisma` — database schema
+- `prisma/seed.js` — demo owner + restaurant seeding
