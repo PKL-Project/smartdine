@@ -1,7 +1,7 @@
 # Restaurant Reserve (Next.js + Prisma)
 
-Pełnostackowa aplikacja do rezerwacji stolików i przed-zamówień dla restauracji. Użytkownicy logują się linkiem magicznym, wybierają rolę (Właściciel lub Gość), a następnie:
-- **Właściciele**: tworzą restaurację, zarządzają stolikami/menu (WIP), akceptują/odrzucają rezerwacje.
+Aplikacja FullStack do rezerwacji stolików i przed-zamówień dla restauracji. Użytkownicy logują się przy użyciu "magic link", wybierają rolę (Właściciel lub Gość), a następnie:
+- **Właściciele**: tworzą restaurację, zarządzają stolikami/menu, akceptują/odrzucają rezerwacje.
 - **Goście**: przeglądają restauracje i dokonują rezerwacji (z opcjonalnym przed-zamówieniem).
 
 ## Technologie
@@ -9,7 +9,6 @@ Pełnostackowa aplikacja do rezerwacji stolików i przed-zamówień dla restaura
 - Tailwind + shadcn/ui
 - Auth.js (NextAuth) — logowanie e‑mailem z linkiem magicznym przez Resend
 - Prisma ORM + SQLite (dev)
-- Polling (bez websockets)
 
 ---
 
@@ -32,7 +31,7 @@ Pełnostackowa aplikacja do rezerwacji stolików i przed-zamówień dla restaura
 
 ### 1) Klonowanie + instalacja
 ```bash
-git clone <your-repo-url> restaurant-reserve
+git clone git@github.com:PKL-Project/pkl-restaurant.git
 cd restaurant-reserve
 nvm use                 # opcjonalnie, ale zalecane
 npm install
@@ -59,7 +58,7 @@ EMAIL_FROM="auth@your-verified-domain.com"
 ### 3) Baza danych (Prisma + SQLite)
 Uruchom początkową migrację (utworzy `prisma/dev.db`) i wygeneruj klienta Prisma:
 ```bash
-npx prisma migrate dev --name init_app
+npx prisma migrate dev
 npx prisma generate
 ```
 
@@ -136,22 +135,6 @@ npx prisma migrate reset
   - **Owner**: dostęp do `/owner` (tworzenie/zarządzanie restauracją, obsługa rezerwacji).
   - **Diner**: przeglądanie `/restaurants`, strona restauracji i rezerwacja.
 - Middleware ogranicza `/owner/**` do roli `OWNER` i wymusza onboarding, jeśli rola nie jest ustawiona.
-
----
-
-## Rozwiązywanie problemów
-
-- **„Module not found: Can't resolve 'nodemailer'”**
-  E‑mail provider z Auth.js importuje `nodemailer` nawet jeśli wysyłasz przez Resend. Zainstaluj, aby zaspokoić import:
-  ```bash
-  npm i nodemailer
-  ```
-  (Alternatywnie użyj własnego providera, który wywołuje Resend bezpośrednio.)
-
-- **Link magiczny nie dochodzi**
-  - Sprawdź `RESEND_API_KEY` i `EMAIL_FROM`.
-  - Zweryfikuj domenę nadawcy w Resend.
-  - Lokalnie rozważ tryb testowy lub catch‑all inbox.
 
 ---
 

@@ -9,7 +9,6 @@ Full-stack reservation & preorder app for restaurants. Users can sign in with ma
 - Tailwind + shadcn/ui
 - Auth.js (NextAuth) — Email magic links via Resend
 - Prisma ORM + SQLite (dev)
-- Polling (no websockets)
 
 ---
 
@@ -32,7 +31,7 @@ Full-stack reservation & preorder app for restaurants. Users can sign in with ma
 
 ### 1) Clone + install
 ```bash
-git clone <your-repo-url> restaurant-reserve
+git clone git@github.com:PKL-Project/pkl-restaurant.git
 cd restaurant-reserve
 nvm use                 # optional but recommended
 npm install
@@ -59,7 +58,7 @@ EMAIL_FROM="auth@your-verified-domain.com"
 ### 3) Database (Prisma + SQLite)
 Run initial migration (creates `prisma/dev.db`) and generate the Prisma Client:
 ```bash
-npx prisma migrate dev --name init_app
+npx prisma migrate dev
 npx prisma generate
 ```
 
