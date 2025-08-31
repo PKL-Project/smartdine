@@ -3,7 +3,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /** Change this to any email you want to be the demo owner */
-const OWNER_EMAIL = "patrykbunix@gmail.com";
+const OWNER_EMAIL = "owner@gmail.com";
 
 async function main() {
   // Ensure we have an owner user
