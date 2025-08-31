@@ -32,7 +32,7 @@ export default function LoginPage() {
             <p className="text-sm">
               If an account exists for{" "}
               <span className="font-medium">{email}</span>, we’ve sent a sign-in
-              link. Check your inbox.
+              link. Check your inbox!
             </p>
           ) : (
             <form onSubmit={onSubmit} className="space-y-3">
