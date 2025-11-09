@@ -8,7 +8,10 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   providers: [
     EmailProvider({
       async sendVerificationRequest({ identifier, url }) {
@@ -28,19 +31,26 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      // On initial sign-in: copy role from DB
+      // On initial sign-in: copy data from DB
       if (user?.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { role: true },
+          select: { id: true, name: true, role: true },
         });
+        token.id = dbUser?.id;
+        token.name = dbUser?.name;
         token.role = dbUser?.role ?? null;
         return token;
       }
 
-      // When the client calls session.update({ role: ... })
-      if (trigger === "update" && session?.role) {
-        token.role = session.role;
+      // When the client calls session.update()
+      if (trigger === "update") {
+        if (session?.role) {
+          token.role = session.role;
+        }
+        if (session?.name !== undefined) {
+          token.name = session.name;
+        }
         return token;
       }
 
@@ -48,14 +58,20 @@ export const authOptions: NextAuthOptions = {
       if (token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: { role: true },
+          select: { id: true, name: true, role: true },
         });
+        token.id = dbUser?.id;
+        token.name = dbUser?.name;
         token.role = dbUser?.role ?? null;
       }
       return token;
     },
 
     async session({ session, token }) {
+      if (token.sub) {
+        session.user.id = token.sub;
+      }
+      session.user.name = (token.name as string | null) ?? null;
       session.user.role = token.role ?? null;
       return session;
     },
