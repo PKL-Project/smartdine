@@ -52,6 +52,8 @@ pnpm-debug.log*
 # vercel
 .vercel
 
+.claude
+
 # editors & IDEs
 .vscode/
 .idea/

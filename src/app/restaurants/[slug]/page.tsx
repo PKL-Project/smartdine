@@ -10,6 +10,7 @@ export default async function RestaurantPage({
   const restaurant = await prisma.restaurant.findUnique({
     where: { slug: params.slug },
     include: {
+      owner: true,
       categories: {
         include: {
           items: { where: { isAvailable: true }, orderBy: { name: "asc" } },
@@ -37,6 +38,11 @@ export default async function RestaurantPage({
         {restaurant.description && (
           <p className="text-sm text-muted-foreground">
             {restaurant.description}
+          </p>
+        )}
+        {restaurant.owner.email && (
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium">Kontakt:</span> {restaurant.owner.email}
           </p>
         )}
       </div>
