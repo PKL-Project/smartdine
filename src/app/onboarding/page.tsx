@@ -27,7 +27,15 @@ export default function OnboardingPage() {
 
     // Refresh JWT/session so middleware and UI see the new role immediately
     await update({ role });
-    router.push(role === USER_ROLES.OWNER ? "/owner" : "/restaurants");
+
+    // Redirect based on role
+    if (role === USER_ROLES.OWNER) {
+      // Owners need to create their restaurant first
+      router.push("/owner/new-restaurant");
+    } else {
+      // Clients see list of restaurants
+      router.push("/restaurants");
+    }
   }
 
   return (

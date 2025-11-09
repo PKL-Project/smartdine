@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:clear": "node scripts/clearDb.js",
+    "db:seed": "node prisma/seed.js",
+    "db:reset": "npm run db:clear && npm run db:seed"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

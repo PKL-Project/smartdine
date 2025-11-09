@@ -1,49 +1,64 @@
 "use client";
 
-import { useSession, signIn, signOut } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { USER_ROLES } from "@/types/roles";
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
-  return (
-    <main className="p-6 max-w-xl mx-auto">
-      <Card className="rounded-2xl shadow-md">
-        <CardContent className="p-6 space-y-4">
-          <h1 className="text-2xl font-semibold">Restaurant Reserve</h1>
-          <p className="text-sm text-muted-foreground">
-            Scaffold is ready: Next.js + Tailwind + shadcn/ui + Prisma + Auth
-            (magic links).
+  useEffect(() => {
+    // Only redirect when session is loaded
+    if (status === "authenticated") {
+      if (session?.user?.role) {
+        // User has a role, redirect based on role
+        if (session.user.role === USER_ROLES.OWNER) {
+          router.push("/owner");
+        } else if (session.user.role === USER_ROLES.CLIENT) {
+          router.push("/restaurants");
+        }
+      } else {
+        // User is authenticated but has no role, redirect to onboarding
+        router.push("/onboarding");
+      }
+    }
+  }, [status, session, router]);
+
+  // Show loading state or sign-in prompt
+  if (status === "loading") {
+    return (
+      <main className="p-6 max-w-xl mx-auto flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">Ładowanie...</p>
+      </main>
+    );
+  }
+
+  // If not authenticated, show sign-in prompt
+  if (status === "unauthenticated") {
+    return (
+      <main className="p-6 max-w-xl mx-auto flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold">Restaurant Reserve</h1>
+          <p className="text-muted-foreground">
+            Zarezerwuj stolik w swojej ulubionej restauracji
           </p>
+          <button
+            onClick={() => signIn()}
+            className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Zaloguj się
+          </button>
+        </div>
+      </main>
+    );
+  }
 
-          {status === "loading" && <p>Loading session…</p>}
-
-          {status !== "loading" && (
-            <>
-              {session ? (
-                <div className="space-y-2">
-                  <p className="text-sm">
-                    Signed in as{" "}
-                    <span className="font-medium">{session.user?.email}</span>
-                  </p>
-                  <Button variant="secondary" onClick={() => signOut()}>
-                    Sign out
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm">You are not signed in.</p>
-                  <Button onClick={() => signIn()}>Sign in</Button>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-      <Button asChild>
-        <a href="/restaurants">Przejdź do restauracji</a>
-      </Button>
+  // While redirecting, show loading
+  return (
+    <main className="p-6 max-w-xl mx-auto flex items-center justify-center min-h-screen">
+      <p className="text-muted-foreground">Przekierowywanie...</p>
     </main>
   );
 }

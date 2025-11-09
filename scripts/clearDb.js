@@ -3,7 +3,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
-  // Delete all records from all tables
+  // Delete all records from all tables (in correct order due to foreign keys)
   await prisma.preorderItem.deleteMany();
   await prisma.reservation.deleteMany();
   await prisma.menuItem.deleteMany();
@@ -11,8 +11,14 @@ async function main() {
   await prisma.openingHour.deleteMany();
   await prisma.table.deleteMany();
   await prisma.restaurant.deleteMany();
-  // Add more models here if needed
-  console.log("All records deleted from all tables.");
+
+  // Delete auth tables
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.verificationToken.deleteMany();
+  await prisma.user.deleteMany();
+
+  console.log("✅ All records deleted from all tables.");
 }
 
 main()

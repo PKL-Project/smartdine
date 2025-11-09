@@ -3,9 +3,11 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /** Change this to any email you want to be the demo owner */
-const OWNER_EMAIL = "owner@gmail.com";
+const OWNER_EMAIL = "owner@example.com";
 
 async function main() {
+  console.log("🌱 Starting seed...");
+
   // Ensure we have an owner user
   const owner = await prisma.user.upsert({
     where: { email: OWNER_EMAIL },
@@ -14,6 +16,7 @@ async function main() {
       email: OWNER_EMAIL,
       name: "Demo Owner",
       role: "OWNER",
+      emailVerified: new Date(),
     },
   });
 
