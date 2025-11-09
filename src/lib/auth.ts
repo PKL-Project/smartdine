@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
 
       // When the client calls session.update({ role: ... })
       if (trigger === "update" && session?.role) {
-        token.role = session.role as any;
+        token.role = session.role;
         return token;
       }
 
@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      session.user.role = (token.role as any) ?? null;
+      session.user.role = token.role ?? null;
       return session;
     },
   },

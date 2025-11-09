@@ -1,31 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { withOwner, getUserByEmail, ErrorResponses } from "@/lib/api-middleware";
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session.user.role !== "OWNER")
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
+export const POST = withOwner(async (req, session) => {
   const { name, slug, description } = await req.json();
-  if (!name || !slug)
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-  const owner = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
+  if (!name || !slug) {
+    return ErrorResponses.badRequest("Missing required fields: name and slug");
+  }
+
+  const owner = await getUserByEmail(session.user.email);
+  if (!owner) {
+    return ErrorResponses.unauthorized();
+  }
+
   const created = await prisma.restaurant.create({
     data: {
       name,
       slug,
       description,
-      ownerId: owner!.id,
+      ownerId: owner.id,
     },
     select: { id: true, slug: true },
   });
 
   return NextResponse.json(created);
-}
+});

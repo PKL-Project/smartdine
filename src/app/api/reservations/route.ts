@@ -1,30 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { withAuth, getUserByEmail, ErrorResponses } from "@/lib/api-middleware";
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+interface PreorderItem {
+  menuItemId: string;
+  quantity?: number;
+  note?: string;
+}
 
-  const body = await req.json();
+interface CreateReservationBody {
+  restaurantId?: string;
+  startTime?: string;
+  durationMinutes?: number;
+  partySize?: number;
+  tableId?: string;
+  specialRequests?: string;
+  preorderItems?: PreorderItem[];
+}
+
+export const POST = withAuth(async (req, session) => {
+  const body: CreateReservationBody = await req.json();
   const {
     restaurantId,
-    startTime, // ISO string
+    startTime,
     durationMinutes = 90,
     partySize,
-    tableId, // optional
-    specialRequests, // optional
-    preorderItems, // optional: [{menuItemId, quantity, note?}]
-  } = body ?? {};
+    tableId,
+    specialRequests,
+    preorderItems,
+  } = body;
 
   if (!restaurantId || !startTime || !partySize) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    return ErrorResponses.badRequest(
+      "Missing required fields: restaurantId, startTime, partySize"
+    );
   }
 
-  // Minimal conflict check (naive): if tableId provided, ensure no overlap
+  // Minimal conflict check: if tableId provided, ensure no overlap
   if (tableId) {
     const start = new Date(startTime);
     const end = new Date(start.getTime() + durationMinutes * 60000);
@@ -42,19 +54,18 @@ export async function POST(req: NextRequest) {
         ],
       },
     });
+
     if (conflict) {
-      return NextResponse.json(
-        { error: "Time slot not available for selected table" },
-        { status: 409 }
+      return ErrorResponses.conflict(
+        "Time slot not available for selected table"
       );
     }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!user)
-    return NextResponse.json({ error: "User not found" }, { status: 401 });
+  const user = await getUserByEmail(session.user.email);
+  if (!user) {
+    return ErrorResponses.unauthorized();
+  }
 
   const reservation = await prisma.reservation.create({
     data: {
@@ -68,10 +79,10 @@ export async function POST(req: NextRequest) {
       status: "PENDING",
       preorderItems: preorderItems?.length
         ? {
-            create: preorderItems.map((it: any) => ({
-              menuItemId: it.menuItemId,
-              quantity: Math.max(1, Number(it.quantity || 1)),
-              note: it.note ?? null,
+            create: preorderItems.map((item) => ({
+              menuItemId: item.menuItemId,
+              quantity: Math.max(1, Number(item.quantity || 1)),
+              note: item.note ?? null,
             })),
           }
         : undefined,
@@ -80,4 +91,4 @@ export async function POST(req: NextRequest) {
   });
 
   return NextResponse.json(reservation);
-}
+});

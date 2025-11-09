@@ -1,12 +1,11 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { UserRole } from "@/types/roles";
 
 export default withAuth(
   async function middleware(req) {
     const nextauth = req.nextauth ?? {};
-    const role = nextauth?.token?.role as "OWNER" | "DINER" | null;
-
-    console.log("patryk nextauth", nextauth);
+    const role = nextauth?.token?.role as UserRole | null;
 
     const url = req.nextUrl.clone();
     const pathname = url.pathname;

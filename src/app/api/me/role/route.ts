@@ -1,28 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { JWT } from "next-auth/jwt";
+import { withAuth, ErrorResponses } from "@/lib/api-middleware";
+import { isValidUserRole, USER_ROLES } from "@/types/roles";
+import { UserRole } from "@prisma/client";
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+interface UpdateRoleBody {
+  role?: string;
+}
+
+export const POST = withAuth(async (req, session) => {
+  const body: UpdateRoleBody = await req.json();
+  const { role } = body;
+
+  // Validate role using type guard
+  if (!role || !isValidUserRole(role)) {
+    return ErrorResponses.badRequest(
+      `Invalid role. Must be ${USER_ROLES.OWNER} or ${USER_ROLES.CLIENT}`
+    );
   }
-
-  const { role } = await req.json();
-  if (role !== "OWNER" && role !== "DINER") {
-    return NextResponse.json({ error: "Bad role" }, { status: 400 });
-  }
-
-  console.log("patryk role set", role);
 
   const user = await prisma.user.update({
     where: { email: session.user.email },
-    data: { role },
+    data: { role: role as UserRole },
     select: { id: true },
   });
 
-  // Nudge JWT to refresh on next request (client will reload page anyway)
   return NextResponse.json({ ok: true, userId: user.id });
-}
+});

@@ -9,7 +9,7 @@ datasource db {
 
 enum UserRole {
   OWNER
-  DINER
+  CLIENT
 }
 
 /** Auth.js models (unchanged) */

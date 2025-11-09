@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { withReservationAccess, ErrorResponses } from "@/lib/api-middleware";
 
-export async function GET(
-  _: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const GET = withReservationAccess(async (_, session, { params }) => {
   const reservation = await prisma.reservation.findUnique({
     where: { id: params.id },
     include: {
@@ -19,7 +11,9 @@ export async function GET(
     },
   });
 
-  if (!reservation)
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!reservation) {
+    return ErrorResponses.notFound("Reservation not found");
+  }
+
   return NextResponse.json(reservation);
-}
+});

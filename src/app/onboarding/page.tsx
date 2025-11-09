@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
+import { UserRole, USER_ROLES } from "@/types/roles";
 
 export default function OnboardingPage() {
-  const [loading, setLoading] = useState<"OWNER" | "DINER" | null>(null);
+  const [loading, setLoading] = useState<UserRole | null>(null);
   const router = useRouter();
   const { update } = useSession();
 
-  async function choose(role: "OWNER" | "DINER") {
+  async function choose(role: UserRole) {
     setLoading(role);
     const res = await fetch("/api/me/role", {
       method: "POST",
@@ -26,7 +27,7 @@ export default function OnboardingPage() {
 
     // Refresh JWT/session so middleware and UI see the new role immediately
     await update({ role });
-    router.push(role === "OWNER" ? "/owner" : "/restaurants");
+    router.push(role === USER_ROLES.OWNER ? "/owner" : "/restaurants");
   }
 
   return (
@@ -38,8 +39,8 @@ export default function OnboardingPage() {
             Utwórz restaurację, dodaj stoliki i menu, akceptuj/odrzucaj
             rezerwacje.
           </p>
-          <Button onClick={() => choose("OWNER")} disabled={!!loading}>
-            {loading === "OWNER" ? "Ładowanie…" : "Wybieram"}
+          <Button onClick={() => choose(USER_ROLES.OWNER)} disabled={!!loading}>
+            {loading === USER_ROLES.OWNER ? "Ładowanie…" : "Wybieram"}
           </Button>
         </CardContent>
       </Card>
@@ -50,8 +51,8 @@ export default function OnboardingPage() {
             Przeglądaj restauracje i rezerwuj stolik z ewentualnym
             przed-zamówieniem.
           </p>
-          <Button onClick={() => choose("DINER")} disabled={!!loading}>
-            {loading === "DINER" ? "Ładowanie…" : "Wybieram"}
+          <Button onClick={() => choose(USER_ROLES.CLIENT)} disabled={!!loading}>
+            {loading === USER_ROLES.CLIENT ? "Ładowanie…" : "Wybieram"}
           </Button>
         </CardContent>
       </Card>
