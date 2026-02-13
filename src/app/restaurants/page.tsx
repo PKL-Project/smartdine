@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { usePolling } from "@/hooks/use-polling";
-import { RefreshIndicator } from "@/components/refresh-indicator";
+import { usePolling } from "@/hooks/usePolling";
+import { RefreshIndicator } from "@/components/RefreshIndicator";
 
 interface Restaurant {
   id: string;
@@ -60,29 +60,25 @@ export default function RestaurantsPage() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               Restauracje
             </h1>
-            <p className="text-sm text-gray-600">
-              Przeglądaj dostępne restauracje
-            </p>
+            <p className="text-sm text-gray-600">Przeglądaj dostępne restauracje</p>
           </div>
           <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
           {restaurants.map((r) => (
-            <Card key={r.id} className="overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
-              {r.imageUrl && (
-                <img
-                  src={r.imageUrl}
-                  alt={r.name}
-                  className="w-full h-40 object-cover"
-                />
-              )}
+            <Card
+              key={r.id}
+              className="overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow"
+            >
+              {r.imageUrl && <img src={r.imageUrl} alt={r.name} className="w-full h-40 object-cover" />}
               <CardContent className="p-4 space-y-2">
                 <h2 className="text-lg font-semibold">{r.name}</h2>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {r.description}
-                </p>
-                <Button asChild className="mt-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow">
+                <p className="text-sm text-gray-600 line-clamp-2">{r.description}</p>
+                <Button
+                  asChild
+                  className="mt-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                >
                   <Link href={`/restaurants/${r.slug}`}>Zobacz</Link>
                 </Button>
               </CardContent>

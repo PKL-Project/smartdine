@@ -7,9 +7,36 @@ import { USER_ROLES } from "@/types/roles";
 
 // Configuration for floating food emojis
 const FOOD_EMOJIS = [
-  '🍔', '🍕', '🍝', '🍜', '🍱', '🍰', '🥗', '🍛', '🍣', '🌮',
-  '🍗', '🥘', '🍲', '🥙', '🌯', '🥪', '🍖', '🍤', '🥟', '🍙',
-  '🍢', '🍡', '🥞', '🧇', '🥐', '🍞', '🥖', '🥨', '🍩', '🎂'
+  "🍔",
+  "🍕",
+  "🍝",
+  "🍜",
+  "🍱",
+  "🍰",
+  "🥗",
+  "🍛",
+  "🍣",
+  "🌮",
+  "🍗",
+  "🥘",
+  "🍲",
+  "🥙",
+  "🌯",
+  "🥪",
+  "🍖",
+  "🍤",
+  "🥟",
+  "🍙",
+  "🍢",
+  "🍡",
+  "🥞",
+  "🧇",
+  "🥐",
+  "🍞",
+  "🥖",
+  "🥨",
+  "🍩",
+  "🎂",
 ];
 
 const EMOJI_CONFIG = {
@@ -89,7 +116,7 @@ export default function Home() {
             {floatingEmojis.map((item) => (
               <div
                 key={item.id}
-                className="absolute animate-float"
+                className="absolute animate-float select-none"
                 style={{
                   top: `${item.top}%`,
                   left: `${item.left}%`,
@@ -108,17 +135,20 @@ export default function Home() {
             <div className="text-center space-y-8">
               <div className="space-y-4">
                 {/* Big Burger Emoji */}
-                <div className="text-8xl sm:text-9xl mb-4 animate-bounce-slow drop-shadow-2xl">
-                  🍔
-                </div>
+                <div className="text-8xl sm:text-9xl mb-4 animate-bounce-slow drop-shadow-2xl select-none">🍔</div>
                 <h1 className="text-6xl sm:text-8xl font-bold tracking-tight drop-shadow-md">
-                  <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent" style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}>
+                  <span
+                    className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent"
+                    style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.05)" }}
+                  >
                     SmartDine
                   </span>
                 </h1>
-                <p className="text-xl sm:text-2xl text-gray-600 max-w-2xl mx-auto drop-shadow-md" style={{ textShadow: '0 2px 4px rgba(255, 255, 255, 0.8)' }}>
-                  Zarezerwuj stolik w swojej ulubionej restauracji w kilka
-                  sekund
+                <p
+                  className="text-xl sm:text-2xl text-gray-600 max-w-2xl mx-auto drop-shadow-md"
+                  style={{ textShadow: "0 2px 4px rgba(255, 255, 255, 0.8)" }}
+                >
+                  Zarezerwuj stolik w swojej ulubionej restauracji w kilka sekund
                 </p>
               </div>
 
@@ -136,12 +166,7 @@ export default function Home() {
             <div className="mt-24 grid sm:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
                 <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
-                  <svg
-                    className="w-6 h-6 text-orange-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -150,23 +175,15 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Błyskawiczne rezerwacje
-                </h3>
+                <h3 className="text-lg font-semibold mb-2">Błyskawiczne rezerwacje</h3>
                 <p className="text-gray-600 text-sm">
-                  Zarezerwuj stolik w kilka kliknięć. Żadnych telefonów, żadnego
-                  czekania.
+                  Zarezerwuj stolik w kilka kliknięć. Żadnych telefonów, żadnego czekania.
                 </p>
               </div>
 
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                  <svg
-                    className="w-6 h-6 text-amber-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -175,23 +192,15 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Przed-zamówienie
-                </h3>
+                <h3 className="text-lg font-semibold mb-2">Przed-zamówienie</h3>
                 <p className="text-gray-600 text-sm">
-                  Zamów dania z wyprzedzeniem i ciesz się szybszą obsługą w
-                  restauracji.
+                  Zamów dania z wyprzedzeniem i ciesz się szybszą obsługą w restauracji.
                 </p>
               </div>
 
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
                 <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
-                  <svg
-                    className="w-6 h-6 text-orange-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -200,12 +209,8 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Dla restauracji
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Zarządzaj rezerwacjami, menu i stolikami w jednym miejscu.
-                </p>
+                <h3 className="text-lg font-semibold mb-2">Dla restauracji</h3>
+                <p className="text-gray-600 text-sm">Zarządzaj rezerwacjami, menu i stolikami w jednym miejscu.</p>
               </div>
             </div>
           </div>
@@ -214,9 +219,7 @@ export default function Home() {
         {/* Footer */}
         <div className="relative border-t border-gray-200 bg-white/50 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6 py-8">
-            <p className="text-center text-gray-500 text-sm">
-              © 2025 SmartDine. Wszystkie prawa zastrzeżone.
-            </p>
+            <p className="text-center text-gray-500 text-sm">© 2025 SmartDine. Wszystkie prawa zastrzeżone.</p>
           </div>
         </div>
       </main>

@@ -3,9 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "./providers";
-import { UserMenu } from "@/components/user-menu";
-import { OwnerRestaurantButton } from "@/components/owner-restaurant-button";
-import { ClientHomeButton } from "@/components/client-home-button";
+import { UserMenu } from "@/components/UserMenu";
+import { OwnerRestaurantButton } from "@/components/OwnerRestaurantButton";
+import { ClientHomeButton } from "@/components/ClientHomeButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,17 +22,13 @@ export const metadata: Metadata = {
   description: "Rezerwuj stolik w swojej ulubionej restauracji",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body
         className={cn(
           "min-h-screen bg-background antialiased",
-          `${geistSans.variable} ${geistMono.variable} antialiased`
+          `${geistSans.variable} ${geistMono.variable} antialiased`,
         )}
       >
         <Providers>

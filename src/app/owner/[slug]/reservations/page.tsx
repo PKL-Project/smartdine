@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { usePolling } from "@/hooks/use-polling";
-import { RefreshIndicator } from "@/components/refresh-indicator";
-import { ReservationStatusBadge } from "@/components/reservation-status-badge";
+import { usePolling } from "@/hooks/usePolling";
+import { RefreshIndicator } from "@/components/RefreshIndicator";
+import { ReservationStatusBadge } from "@/components/ReservationStatusBadge";
 
 interface Reservation {
   id: string;
@@ -114,14 +114,10 @@ export default function OwnerReservations() {
             >
               <div className="text-sm">
                 <div>
-                  <span className="font-medium text-gray-900">
-                    {new Date(res.startTime).toLocaleString()}
-                  </span>{" "}
-                  • {res.partySize} os.
+                  <span className="font-medium text-gray-900">{new Date(res.startTime).toLocaleString()}</span> •{" "}
+                  {res.partySize} os.
                 </div>
-                <div className="text-gray-600">
-                  Gość: {res.user.email}
-                </div>
+                <div className="text-gray-600">Gość: {res.user.email}</div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-gray-600">Status:</span>
                   <ReservationStatusBadge status={res.status} />

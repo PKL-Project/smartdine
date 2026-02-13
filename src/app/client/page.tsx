@@ -6,9 +6,9 @@ import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { usePolling } from "@/hooks/use-polling";
-import { RefreshIndicator } from "@/components/refresh-indicator";
-import { ReservationStatusBadge } from "@/components/reservation-status-badge";
+import { usePolling } from "@/hooks/usePolling";
+import { RefreshIndicator } from "@/components/RefreshIndicator";
+import { ReservationStatusBadge } from "@/components/ReservationStatusBadge";
 
 interface Restaurant {
   id: string;
@@ -78,9 +78,7 @@ export default function ClientHomePage() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               Panel klienta
             </h1>
-            <p className="text-sm text-gray-600">
-              Przeglądaj restauracje i zarządzaj swoimi rezerwacjami
-            </p>
+            <p className="text-sm text-gray-600">Przeglądaj restauracje i zarządzaj swoimi rezerwacjami</p>
           </div>
           <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} />
         </div>
@@ -98,20 +96,18 @@ export default function ClientHomePage() {
           <TabsContent value="restaurants" className="mt-6">
             <div className="grid sm:grid-cols-2 gap-6">
               {restaurants.map((r) => (
-                <Card key={r.id} className="overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
-                  {r.imageUrl && (
-                    <img
-                      src={r.imageUrl}
-                      alt={r.name}
-                      className="w-full h-40 object-cover"
-                    />
-                  )}
+                <Card
+                  key={r.id}
+                  className="overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  {r.imageUrl && <img src={r.imageUrl} alt={r.name} className="w-full h-40 object-cover" />}
                   <CardContent className="p-4 space-y-2">
                     <h2 className="text-lg font-semibold">{r.name}</h2>
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {r.description}
-                    </p>
-                    <Button asChild className="mt-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow">
+                    <p className="text-sm text-gray-600 line-clamp-2">{r.description}</p>
+                    <Button
+                      asChild
+                      className="mt-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                    >
                       <Link href={`/restaurants/${r.slug}`}>Zobacz</Link>
                     </Button>
                   </CardContent>
@@ -126,28 +122,31 @@ export default function ClientHomePage() {
             ) : reservations.length === 0 ? (
               <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardContent className="p-6 text-center">
-                  <p className="text-gray-600">
-                    Nie masz jeszcze żadnych rezerwacji
-                  </p>
+                  <p className="text-gray-600">Nie masz jeszcze żadnych rezerwacji</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-3">
                 {reservations.map((res) => (
-                  <Card key={res.id} className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+                  <Card
+                    key={res.id}
+                    className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow"
+                  >
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="space-y-1">
                         <div className="font-medium">{res.restaurant.name}</div>
                         <div className="text-sm text-gray-600">
-                          {new Date(res.startTime).toLocaleString("pl-PL")} •{" "}
-                          {res.partySize} os.
+                          {new Date(res.startTime).toLocaleString("pl-PL")} • {res.partySize} os.
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-600">Status:</span>
                           <ReservationStatusBadge status={res.status} />
                         </div>
                       </div>
-                      <Button asChild className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow">
+                      <Button
+                        asChild
+                        className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                      >
                         <Link href={`/reservations/${res.id}`}>Szczegóły</Link>
                       </Button>
                     </CardContent>

@@ -10,8 +10,8 @@ interface CreateMenuItemBody {
 }
 
 // POST /api/owner/restaurants/[slug]/menu/items - Create a new menu item
-export const POST = withOwner(async (req, session, { params }) => {
-  const slug = params.slug as string;
+export const POST = withOwner<{ slug: string }>(async (req, session, { params }) => {
+  const { slug } = await params;
   const body: CreateMenuItemBody = await req.json();
   const { categoryId, name, description, priceCents } = body;
 

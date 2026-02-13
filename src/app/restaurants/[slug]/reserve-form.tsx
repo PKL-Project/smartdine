@@ -51,7 +51,7 @@ export default function ReserveForm({
 
     try {
       const preorderItems = Object.entries(preorder)
-        .filter(([_, q]) => Number(q) > 0)
+        .filter(([, q]) => Number(q) > 0)
         .map(([menuItemId, q]) => ({ menuItemId, quantity: Number(q) }));
 
       const res = await fetch("/api/reservations", {
@@ -70,8 +70,8 @@ export default function ReserveForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Reservation failed");
       router.push(`/reservations/${data.id}`);
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }

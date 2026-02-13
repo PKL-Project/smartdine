@@ -4,9 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { usePolling } from "@/hooks/use-polling";
-import { RefreshIndicator } from "@/components/refresh-indicator";
-import { ReservationStatusBadge } from "@/components/reservation-status-badge";
+import { usePolling } from "@/hooks/usePolling";
+import { RefreshIndicator } from "@/components/RefreshIndicator";
+import { ReservationStatusBadge } from "@/components/ReservationStatusBadge";
 
 type Reservation = {
   id: string;
@@ -35,8 +35,8 @@ export default function ReservationPage() {
       if (!res.ok) throw new Error(j.error || "Failed");
       setData(j);
       setError(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -71,16 +71,13 @@ export default function ReservationPage() {
             ) : (
               <>
                 <p className="text-sm">
-                  Restauracja:{" "}
-                  <span className="font-medium">{data.restaurant.name}</span>
+                  Restauracja: <span className="font-medium">{data.restaurant.name}</span>
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Status:</span>
                   <ReservationStatusBadge status={data.status} />
                 </div>
-                <p className="text-sm text-gray-700">
-                  Termin: {new Date(data.startTime).toLocaleString()}
-                </p>
+                <p className="text-sm text-gray-700">Termin: {new Date(data.startTime).toLocaleString()}</p>
                 <p className="text-sm text-gray-700">Liczba osób: {data.partySize}</p>
                 {data.preorderItems?.length ? (
                   <div className="space-y-1">
@@ -94,14 +91,16 @@ export default function ReservationPage() {
                     </ul>
                   </div>
                 ) : null}
-                <div className="pt-2">
+                <div className="pt-2 flex gap-3">
                   <Button
-                    onClick={() =>
-                      router.push(`/restaurants/${data.restaurant.slug}`)
-                    }
+                    onClick={() => router.push(`/reservations/${id}/edit`)}
                     className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                    disabled={data.status === "CANCELLED"}
                   >
-                    Wróć do restauracji
+                    Edytuj rezerwację
+                  </Button>
+                  <Button onClick={() => router.push("/client")} variant="outline" className="border-gray-300">
+                    Wróć do listy
                   </Button>
                 </div>
               </>

@@ -7,8 +7,8 @@ interface CreateCategoryBody {
 }
 
 // POST /api/owner/restaurants/[slug]/menu/categories - Create a new menu category
-export const POST = withOwner(async (req, session, { params }) => {
-  const slug = params.slug as string;
+export const POST = withOwner<{ slug: string }>(async (req, session, { params }) => {
+  const { slug } = await params;
   const body: CreateCategoryBody = await req.json();
   const { name } = body;
 

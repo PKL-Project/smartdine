@@ -10,14 +10,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const resend = isDevelopment
   ? {
       emails: {
-        send: async (params: {
-          from: string;
-          to: string;
-          subject: string;
-          html: string;
-          text: string;
-        }) => {
-          // Extract the URL from the text content
+        send: async (params: { from: string; to: string; subject: string; html: string; text: string }) => {
           const urlMatch = params.text.match(/(https?:\/\/[^\s]+)/);
           const magicLink = urlMatch ? urlMatch[1] : null;
 
@@ -27,8 +20,9 @@ const resend = isDevelopment
           console.log(`Temat: ${params.subject}`);
 
           if (magicLink) {
-            // Make the link clickable in most modern terminals
-            console.log(`\n🔗 Link logowania (kliknij aby się zalogować):\n\x1b]8;;${magicLink}\x1b\\${magicLink}\x1b]8;;\x1b\\\n`);
+            console.log(
+              `\n🔗 Link logowania (kliknij aby się zalogować):\n\x1b]8;;${magicLink}\x1b\\${magicLink}\x1b]8;;\x1b\\\n`,
+            );
           }
 
           console.log("============================================\n");
@@ -86,7 +80,7 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      // Keep token in sync with DB (simple & reliable)
+      // Keep token in sync with DB
       if (token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },

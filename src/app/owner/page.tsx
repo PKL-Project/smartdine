@@ -9,7 +9,11 @@ import { redirect } from "next/navigation";
 export default async function OwnerHome() {
   const session = await getServerSession(authOptions);
 
-  const email = session?.user?.email!;
+  const email = session?.user?.email;
+  if (!email) {
+    redirect("/login");
+  }
+
   const me = await prisma.user.findUnique({
     where: { email },
     select: {
