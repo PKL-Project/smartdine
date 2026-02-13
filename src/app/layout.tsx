@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "./providers";
 import { UserMenu } from "@/components/user-menu";
+import { OwnerRestaurantButton } from "@/components/owner-restaurant-button";
+import { ClientHomeButton } from "@/components/client-home-button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Restaurant Reserve",
+  title: "SmartDine",
   description: "Rezerwuj stolik w swojej ulubionej restauracji",
 };
 
@@ -35,6 +37,8 @@ export default function RootLayout({
       >
         <Providers>
           {children}
+          <OwnerRestaurantButton />
+          <ClientHomeButton />
           <UserMenu />
         </Providers>
       </body>

@@ -4,7 +4,39 @@ import EmailProvider from "next-auth/providers/email";
 import { Resend } from "resend";
 import { prisma } from "./prisma";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+const isDevelopment = process.env.NODE_ENV === "development";
+
+// Mock Resend API for local development
+const resend = isDevelopment
+  ? {
+      emails: {
+        send: async (params: {
+          from: string;
+          to: string;
+          subject: string;
+          html: string;
+          text: string;
+        }) => {
+          // Extract the URL from the text content
+          const urlMatch = params.text.match(/(https?:\/\/[^\s]+)/);
+          const magicLink = urlMatch ? urlMatch[1] : null;
+
+          console.log("\n=== 📧 WIADOMOŚĆ EMAIL (Tryb deweloperski) ===");
+          console.log(`Od: ${params.from}`);
+          console.log(`Do: ${params.to}`);
+          console.log(`Temat: ${params.subject}`);
+
+          if (magicLink) {
+            // Make the link clickable in most modern terminals
+            console.log(`\n🔗 Link logowania (kliknij aby się zalogować):\n\x1b]8;;${magicLink}\x1b\\${magicLink}\x1b]8;;\x1b\\\n`);
+          }
+
+          console.log("============================================\n");
+          return { id: "mock-email-id" };
+        },
+      },
+    }
+  : new Resend(process.env.RESEND_API_KEY!);
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -18,13 +50,13 @@ export const authOptions: NextAuthOptions = {
         await resend.emails.send({
           from: process.env.EMAIL_FROM!,
           to: identifier,
-          subject: "Sign in to Restaurant Reserve",
+          subject: "Zaloguj się do SmartDine",
           html: `
-            <p>Click the link below to sign in:</p>
-            <p><a href="${url}">Sign in</a></p>
-            <p>This link will expire soon. If you didn't request it, please ignore.</p>
+            <p>Kliknij link poniżej, aby się zalogować:</p>
+            <p><a href="${url}">Zaloguj się</a></p>
+            <p>Link wygaśnie wkrótce. Jeśli nie prosiłeś o logowanie, zignoruj tę wiadomość.</p>
           `,
-          text: `Sign in to Restaurant Reserve: ${url}`,
+          text: `Zaloguj się do SmartDine: ${url}`,
         });
       },
     }),
@@ -76,5 +108,8 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  pages: { signIn: "/login" },
+  pages: {
+    signIn: "/login",
+    verifyRequest: "/auth/verify-request",
+  },
 };

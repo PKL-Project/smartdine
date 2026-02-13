@@ -29,36 +29,61 @@ export default function NewRestaurantPage() {
   }
 
   return (
-    <main className="max-w-xl mx-auto p-6">
-      <Card className="rounded-2xl">
-        <CardContent className="p-6 space-y-3">
-          <h1 className="text-xl font-semibold">Nowa restauracja</h1>
-          <form onSubmit={submit} className="space-y-3">
-            <div>
-              <Label>Nazwa</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+    <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center p-6">
+      <div className="max-w-xl w-full">
+        <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
+          <CardContent className="p-8 space-y-6">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                Nowa restauracja
+              </h1>
+              <p className="text-sm text-gray-600 mt-2">
+                Utwórz swoją pierwszą restaurację w SmartDine
+              </p>
             </div>
-            <div>
-              <Label>Slug (adres)</Label>
-              <Input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="np. bistro-aurora"
-                required
-              />
-            </div>
-            <div>
-              <Label>Opis</Label>
-              <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
-            </div>
-            <Button type="submit">Zapisz</Button>
-          </form>
-        </CardContent>
-      </Card>
+            <form onSubmit={submit} className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-gray-700">Nazwa</Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  placeholder="Nazwa Twojej restauracji"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-700">Slug (adres URL)</Label>
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="np. bistro-aurora"
+                  required
+                  className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                />
+                <p className="text-xs text-gray-500">
+                  Będzie używany w adresie URL: smartdine.com/restaurants/{slug || "twoj-slug"}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-700">Opis</Label>
+                <Input
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                  className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                  placeholder="Krótki opis Twojej restauracji"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+              >
+                Zapisz
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

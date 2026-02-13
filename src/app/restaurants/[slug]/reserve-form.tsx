@@ -78,24 +78,28 @@ export default function ReserveForm({
   }
 
   return (
-    <Card className="rounded-2xl shadow-sm">
-      <CardContent className="p-4">
+    <Card className="rounded-2xl shadow-lg bg-white/80 backdrop-blur-sm">
+      <CardContent className="p-6">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-4">
+          Rezerwacja
+        </h2>
         <form
           onSubmit={submitReservation}
-          className="grid md:grid-cols-2 gap-4"
+          className="grid md:grid-cols-2 gap-6"
         >
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Data i godzina</Label>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-gray-700">Data i godzina</Label>
               <Input
                 type="datetime-local"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
                 required
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
-            <div className="space-y-1">
-              <Label>Liczba osób</Label>
+            <div className="space-y-2">
+              <Label className="text-gray-700">Liczba osób</Label>
               <Input
                 type="number"
                 min={1}
@@ -103,12 +107,13 @@ export default function ReserveForm({
                 value={party}
                 onChange={(e) => setParty(Number(e.target.value))}
                 required
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
-            <div className="space-y-1">
-              <Label>Stolik (opcjonalnie)</Label>
+            <div className="space-y-2">
+              <Label className="text-gray-700">Stolik (opcjonalnie)</Label>
               <select
-                className="border rounded-md h-9 px-2"
+                className="border border-gray-300 rounded-md h-10 px-3 w-full focus:border-orange-500 focus:ring-orange-500 cursor-pointer"
                 value={tableId}
                 onChange={(e) => setTableId(e.target.value)}
               >
@@ -120,40 +125,45 @@ export default function ReserveForm({
                 ))}
               </select>
             </div>
-            <div className="space-y-1">
-              <Label>Uwagi (opcjonalnie)</Label>
+            <div className="space-y-2">
+              <Label className="text-gray-700">Uwagi (opcjonalnie)</Label>
               <Input
                 value={special}
                 onChange={(e) => setSpecial(e.target.value)}
                 placeholder="Np. urodziny, krzesełko dla dziecka…"
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div>
-              <Button type="submit" disabled={loading}>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+              >
                 {loading ? "Rezerwuję…" : "Zarezerwuj"}
               </Button>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="font-medium">
+          <div className="space-y-3">
+            <h3 className="font-semibold text-lg text-gray-900">
               Zamówienie z wyprzedzeniem (opcjonalne)
             </h3>
             {restaurant.categories.map((c) => (
-              <div key={c.id} className="space-y-1">
-                <div className="text-sm text-muted-foreground">{c.name}</div>
+              <div key={c.id} className="space-y-2">
+                <div className="text-sm font-medium text-gray-700">{c.name}</div>
                 {c.items.map((it) => (
                   <div
                     key={it.id}
                     className="flex items-center justify-between gap-2"
                   >
-                    <span className="text-sm">{it.name}</span>
+                    <span className="text-sm text-gray-700">{it.name}</span>
                     <Input
                       type="number"
                       min={0}
                       placeholder="0"
-                      className="w-20"
+                      className="w-20 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                       value={preorder[it.id] ?? ""}
                       onChange={(e) =>
                         setPreorder((prev) => ({
@@ -166,7 +176,7 @@ export default function ReserveForm({
                 ))}
               </div>
             ))}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-600">
               Przed-zamówienie jest przekazywane do kuchni po potwierdzeniu
               rezerwacji.
             </p>

@@ -57,7 +57,7 @@ export function UserMenu() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center z-50"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center z-50"
         aria-label="Otwórz menu użytkownika"
       >
         <User className="w-6 h-6" />
@@ -179,7 +179,7 @@ export function UserMenu() {
                 <Button
                   variant="destructive"
                   className="w-full"
-                  onClick={() => signOut()}
+                  onClick={() => signOut({ callbackUrl: "/" })}
                 >
                   Wyloguj się
                 </Button>

@@ -32,6 +32,16 @@ export default withAuth(
       }
     }
 
+    // If user has a role and tries to access onboarding, redirect to appropriate page
+    if (nextauth?.token && role && pathname.startsWith("/onboarding")) {
+      if (role === "OWNER") {
+        url.pathname = "/owner";
+      } else if (role === "CLIENT") {
+        url.pathname = "/client";
+      }
+      return NextResponse.redirect(url);
+    }
+
     // Owner-only guard
     if (pathname.startsWith("/owner") && role !== "OWNER") {
       url.pathname = "/";
