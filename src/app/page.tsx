@@ -2,12 +2,49 @@
 
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { USER_ROLES } from "@/types/roles";
+
+// Configuration for floating food emojis
+const FOOD_EMOJIS = [
+  '🍔', '🍕', '🍝', '🍜', '🍱', '🍰', '🥗', '🍛', '🍣', '🌮',
+  '🍗', '🥘', '🍲', '🥙', '🌯', '🥪', '🍖', '🍤', '🥟', '🍙',
+  '🍢', '🍡', '🥞', '🧇', '🥐', '🍞', '🥖', '🥨', '🍩', '🎂'
+];
+
+const EMOJI_CONFIG = {
+  count: 25, // Number of emojis to display
+  minSize: 48, // Minimum size in pixels
+  maxSize: 80, // Maximum size in pixels
+  minOpacity: 0.3, // Minimum opacity
+  maxOpacity: 0.7, // Maximum opacity
+};
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Generate random positions and properties for food emojis
+  const floatingEmojis = useMemo(() => {
+    return Array.from({ length: EMOJI_CONFIG.count }, (_, i) => {
+      const emoji = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+      const size = Math.random() * (EMOJI_CONFIG.maxSize - EMOJI_CONFIG.minSize) + EMOJI_CONFIG.minSize;
+      const opacity = Math.random() * (EMOJI_CONFIG.maxOpacity - EMOJI_CONFIG.minOpacity) + EMOJI_CONFIG.minOpacity;
+      const top = Math.random() * 100; // 0-100%
+      const left = Math.random() * 100; // 0-100%
+      const delay = Math.random() * 6; // 0-6 seconds
+
+      return {
+        id: i,
+        emoji,
+        size,
+        opacity,
+        top,
+        left,
+        delay,
+      };
+    });
+  }, []);
 
   useEffect(() => {
     // Only redirect when session is loaded
@@ -47,16 +84,39 @@ export default function Home() {
           <div className="absolute top-40 left-10 w-72 h-72 bg-amber-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
           <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
 
+          {/* Floating Food Emojis */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {floatingEmojis.map((item) => (
+              <div
+                key={item.id}
+                className="absolute animate-float"
+                style={{
+                  top: `${item.top}%`,
+                  left: `${item.left}%`,
+                  fontSize: `${item.size}px`,
+                  opacity: item.opacity,
+                  animationDelay: `${item.delay}s`,
+                }}
+              >
+                {item.emoji}
+              </div>
+            ))}
+          </div>
+
           <div className="relative max-w-7xl mx-auto px-6 py-24 sm:py-32">
             {/* Main content */}
             <div className="text-center space-y-8">
               <div className="space-y-4">
-                <h1 className="text-5xl sm:text-7xl font-bold tracking-tight">
-                  <span className="bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                {/* Big Burger Emoji */}
+                <div className="text-8xl sm:text-9xl mb-4 animate-bounce-slow drop-shadow-2xl">
+                  🍔
+                </div>
+                <h1 className="text-6xl sm:text-8xl font-bold tracking-tight drop-shadow-md">
+                  <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent" style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}>
                     SmartDine
                   </span>
                 </h1>
-                <p className="text-xl sm:text-2xl text-gray-600 max-w-2xl mx-auto">
+                <p className="text-xl sm:text-2xl text-gray-600 max-w-2xl mx-auto drop-shadow-md" style={{ textShadow: '0 2px 4px rgba(255, 255, 255, 0.8)' }}>
                   Zarezerwuj stolik w swojej ulubionej restauracji w kilka
                   sekund
                 </p>
