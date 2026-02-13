@@ -10,9 +10,8 @@ interface UpdateMenuItemBody {
 }
 
 // PATCH /api/owner/restaurants/[slug]/menu/items/[id] - Update menu item
-export const PATCH = withOwner(async (req, session, { params }) => {
-  const slug = params.slug as string;
-  const itemId = params.id as string;
+export const PATCH = withOwner<{ slug: string; id: string }>(async (req, session, { params }) => {
+  const { slug, id: itemId } = await params;
   const body: UpdateMenuItemBody = await req.json();
 
   // Verify ownership
@@ -44,9 +43,8 @@ export const PATCH = withOwner(async (req, session, { params }) => {
 });
 
 // DELETE /api/owner/restaurants/[slug]/menu/items/[id] - Delete menu item
-export const DELETE = withOwner(async (req, session, { params }) => {
-  const slug = params.slug as string;
-  const itemId = params.id as string;
+export const DELETE = withOwner<{ slug: string; id: string }>(async (req, session, { params }) => {
+  const { slug, id: itemId } = await params;
 
   // Verify ownership
   const isOwner = await verifyRestaurantOwnershipBySlug(slug, session.user.email);

@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { withOwner, verifyRestaurantOwnershipBySlug, ErrorResponses } from "@/lib/api-middleware";
 
 // GET /api/owner/restaurants/[slug]/menu - Get restaurant menu with categories and items
-export const GET = withOwner(async (_, session, { params }) => {
-  const slug = params.slug as string;
+export const GET = withOwner<{ slug: string }>(async (_, session, { params }) => {
+  const { slug } = await params;
 
   // Verify ownership
   const isOwner = await verifyRestaurantOwnershipBySlug(slug, session.user.email);

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth, ErrorResponses } from "@/lib/api-middleware";
 import { USER_ROLES } from "@/types/roles";
 
-export const GET = withAuth(async (req, session, { params }) => {
+export const GET = withAuth<{ slug: string }>(async (req, session, { params }) => {
   const { slug } = await params;
 
   // Only owners can access this endpoint

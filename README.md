@@ -1,8 +1,8 @@
-# Restaurant Reserve (Next.js + Prisma)
+# SmartDine (Next.js + Prisma)
 
-Full-stack reservation & preorder app for restaurants. Users can sign in with magic links, choose a role (Owner or Diner), and then:
-- **Owners**: create a restaurant, manage tables/menu (WIP), accept/decline reservations.
-- **Diners**: browse restaurants and make reservations (with optional pre-order).
+Full-stack reservation & preorder app for restaurants. Users can sign in with magic links, choose a role (Owner or Client), and then:
+- **Owners**: create a restaurant, manage tables/menu, accept/decline reservations.
+- **Clients**: browse restaurants and make reservations (with optional pre-order).
 
 ## Tech Stack
 - Next.js (App Router) + TypeScript
@@ -78,8 +78,14 @@ Visit http://localhost:3000
 
 **First login flow:**
 - Sign in with your email (magic link via Resend).
-- You’ll be taken to **/onboarding** to choose **Owner** or **Diner**.
-- Owners land on **/owner**; Diners go to **/restaurants**.
+- You'll be taken to **/onboarding** to choose **Owner** or **Client**.
+- Owners land on **/owner**; Clients go to **/client**.
+
+**Development Mode (Magic Link in Console):**
+- In development mode (`NODE_ENV=development`), the magic link email is **not actually sent**.
+- Instead, the link is **displayed in your terminal/console** with a clickable URL.
+- Check your console output for: `🔗 Link logowania (kliknij aby się zalogować)`
+- Simply click the link (or copy/paste it) to sign in instantly.
 
 ---
 
@@ -133,7 +139,7 @@ npx prisma migrate reset
 
 - On first login, users choose a role:
   - **Owner**: access `/owner` (create/manage restaurant, manage reservations).
-  - **Diner**: browse `/restaurants`, open a restaurant page, and reserve.
+  - **Client**: browse `/client` (view restaurants and reservations), make reservations.
 - The middleware restricts `/owner/**` to users with role `OWNER` and forces onboarding if no role is set.
 
 ---
@@ -147,10 +153,15 @@ npx prisma migrate reset
   ```
   (Alternatively, use a custom provider that calls Resend directly.)
 
-- **Magic link not arriving**
+- **Magic link not arriving (Production)**
   - Check `RESEND_API_KEY` and `EMAIL_FROM`.
   - Verify sending domain in Resend.
   - For local dev, consider Resend test mode or a catch-all inbox.
+
+- **Magic link in development mode**
+  - In dev mode, emails are **NOT sent** via Resend.
+  - The magic link appears in your **console/terminal** output.
+  - Look for the clickable link after you submit your email on the login page.
 
 ---
 

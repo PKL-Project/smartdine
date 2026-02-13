@@ -1,8 +1,8 @@
-# Restaurant Reserve (Next.js + Prisma)
+# SmartDine (Next.js + Prisma)
 
-Aplikacja FullStack do rezerwacji stolików i przed-zamówień dla restauracji. Użytkownicy logują się przy użyciu "magic link", wybierają rolę (Właściciel lub Gość), a następnie:
+Aplikacja FullStack do rezerwacji stolików i przed-zamówień dla restauracji. Użytkownicy logują się przy użyciu "magic link", wybierają rolę (Właściciel lub Klient), a następnie:
 - **Właściciele**: tworzą restaurację, zarządzają stolikami/menu, akceptują/odrzucają rezerwacje.
-- **Goście**: przeglądają restauracje i dokonują rezerwacji (z opcjonalnym przed-zamówieniem).
+- **Klienci**: przeglądają restauracje i dokonują rezerwacji (z opcjonalnym przed-zamówieniem).
 
 ## Technologie
 - Next.js (App Router) + TypeScript
@@ -78,8 +78,14 @@ Odwiedź http://localhost:3000
 
 **Pierwsze logowanie:**
 - Zaloguj się swoim e‑mailem (link magiczny przez Resend).
-- Zostaniesz przeniesiony na **/onboarding**, aby wybrać **Owner** lub **Diner**.
-- Właściciele trafią na **/owner**; Goście na **/restaurants**.
+- Zostaniesz przeniesiony na **/onboarding**, aby wybrać **Owner** lub **Klient**.
+- Właściciele trafią na **/owner**; Klienci na **/client**.
+
+**Tryb deweloperski (Link magiczny w konsoli):**
+- W trybie deweloperskim (`NODE_ENV=development`), link magiczny **NIE jest wysyłany emailem**.
+- Zamiast tego, link jest **wyświetlany w terminalu/konsoli** jako klikalny URL.
+- Sprawdź output konsoli dla: `🔗 Link logowania (kliknij aby się zalogować)`
+- Po prostu kliknij link (lub skopiuj/wklej) aby zalogować się natychmiastowo.
 
 ---
 
@@ -133,14 +139,35 @@ npx prisma migrate reset
 
 - Przy pierwszym logowaniu użytkownik wybiera rolę:
   - **Owner**: dostęp do `/owner` (tworzenie/zarządzanie restauracją, obsługa rezerwacji).
-  - **Diner**: przeglądanie `/restaurants`, strona restauracji i rezerwacja.
+  - **Klient**: przeglądanie `/client` (widok restauracji i rezerwacji), dokonywanie rezerwacji.
 - Middleware ogranicza `/owner/**` do roli `OWNER` i wymusza onboarding, jeśli rola nie jest ustawiona.
+
+---
+
+## Rozwiązywanie problemów
+
+- **"Module not found: Can't resolve 'nodemailer'"**
+  Email provider Auth.js importuje `nodemailer` nawet jeśli wysyłasz przez Resend. Zainstaluj go aby zaspokoić import:
+  ```bash
+  npm i nodemailer
+  ```
+  (Alternatywnie, użyj własnego providera, który wywołuje Resend bezpośrednio.)
+
+- **Link magiczny nie dociera (Produkcja)**
+  - Sprawdź `RESEND_API_KEY` i `EMAIL_FROM`.
+  - Zweryfikuj domenę wysyłającą w Resend.
+  - Dla lokalnego dev, rozważ tryb testowy Resend lub catch-all inbox.
+
+- **Link magiczny w trybie deweloperskim**
+  - W trybie dev, emaile **NIE są wysyłane** przez Resend.
+  - Link magiczny pojawia się w twoim **terminalu/konsoli**.
+  - Szukaj klikalnego linku po wysłaniu emaila na stronie logowania.
 
 ---
 
 ## Struktura folderów
 
-- `src/app` — trasy App Router ( `/restaurants`, `/owner`, API pod `/api/**` )
+- `src/app` — trasy Next.js App Router (`/client`, `/owner`, API pod `/api/**`)
 - `src/lib` — klient Prisma, konfiguracja Auth, helpery
 - `prisma/schema.prisma` — schemat bazy
 - `prisma/seed.js` — seed: właściciel demo + przykładowa restauracja

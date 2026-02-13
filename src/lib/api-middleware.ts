@@ -14,21 +14,21 @@ export type AuthenticatedSession = Session & {
 
 export type ApiHandler<T = unknown> = (
   req: NextRequest,
-  context: { params: T }
+  context: { params: Promise<T> }
 ) => Promise<NextResponse>;
 
 export type AuthenticatedApiHandler<T = unknown> = (
   req: NextRequest,
   session: AuthenticatedSession,
-  context: { params: T }
+  context: { params: Promise<T> }
 ) => Promise<NextResponse>;
 
 // Error response helpers
 export const ErrorResponses = {
-  unauthorized: () =>
-    NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
-  forbidden: () =>
-    NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+  unauthorized: (message = "Unauthorized") =>
+    NextResponse.json({ error: message }, { status: 401 }),
+  forbidden: (message = "Forbidden") =>
+    NextResponse.json({ error: message }, { status: 403 }),
   notFound: (message = "Not found") =>
     NextResponse.json({ error: message }, { status: 404 }),
   badRequest: (message = "Bad request") =>
@@ -170,7 +170,8 @@ export function withRestaurantOwnership<T extends { id: string }>(
   handler: AuthenticatedApiHandler<T>
 ): ApiHandler<T> {
   return withOwner<T>(async (req, session, context) => {
-    const restaurantId = context.params.id;
+    const params = await context.params;
+    const restaurantId = params.id;
 
     const isOwner = await verifyRestaurantOwnership(
       restaurantId,
@@ -192,7 +193,8 @@ export function withReservationAccess<T extends { id: string }>(
   handler: AuthenticatedApiHandler<T>
 ): ApiHandler<T> {
   return withAuth<T>(async (req, session, context) => {
-    const reservationId = context.params.id;
+    const params = await context.params;
+    const reservationId = params.id;
 
     // Check if user is the reservation owner OR the restaurant owner
     const isReservationOwner = await verifyReservationOwnership(

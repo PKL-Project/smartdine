@@ -35,8 +35,8 @@ export default function ReservationPage() {
       if (!res.ok) throw new Error(j.error || "Failed");
       setData(j);
       setError(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -94,14 +94,20 @@ export default function ReservationPage() {
                     </ul>
                   </div>
                 ) : null}
-                <div className="pt-2">
+                <div className="pt-2 flex gap-3">
                   <Button
-                    onClick={() =>
-                      router.push(`/restaurants/${data.restaurant.slug}`)
-                    }
+                    onClick={() => router.push(`/reservations/${id}/edit`)}
                     className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                    disabled={data.status === "CANCELLED"}
                   >
-                    Wróć do restauracji
+                    Edytuj rezerwację
+                  </Button>
+                  <Button
+                    onClick={() => router.push("/client")}
+                    variant="outline"
+                    className="border-gray-300"
+                  >
+                    Wróć do listy
                   </Button>
                 </div>
               </>

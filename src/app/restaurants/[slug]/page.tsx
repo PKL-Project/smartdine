@@ -5,10 +5,11 @@ import ReserveForm from "./reserve-form";
 export default async function RestaurantPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const restaurant = await prisma.restaurant.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       owner: true,
       categories: {

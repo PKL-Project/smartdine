@@ -1,14 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withOwner, verifyReservationRestaurantOwnership } from "@/lib/api-middleware";
 import { ReservationStatus } from "@prisma/client";
 
-export const POST = withOwner(async (req, session, { params }) => {
+export const POST = withOwner<{ id: string }>(async (req, session, { params }) => {
+  const { id } = await params;
   const form = await req.formData();
   const status = form.get("status");
 
   // Validate status
-  if (status !== "CONFIRMED" && status !== "CANCELLED") {
+  if (status !== "CONFIRMED" && status !== "CANCELLED" && status !== "EDITED") {
     return NextResponse.redirect(
       new URL(req.headers.get("referer") || "/", req.url)
     );
@@ -16,7 +17,7 @@ export const POST = withOwner(async (req, session, { params }) => {
 
   // Verify the reservation belongs to one of the owner's restaurants
   const isOwner = await verifyReservationRestaurantOwnership(
-    params.id,
+    id,
     session.user.email
   );
 
@@ -25,7 +26,7 @@ export const POST = withOwner(async (req, session, { params }) => {
   }
 
   await prisma.reservation.update({
-    where: { id: params.id },
+    where: { id },
     data: { status: status as ReservationStatus },
   });
 
