@@ -7,7 +7,7 @@ export default withAuth(
     const nextauth = req.nextauth ?? {};
     const role = nextauth?.token?.role as UserRole | null;
 
-    const url = req.nextUrl.clone();
+    const url = (req as any).nextUrl.clone();
     const pathname = url.pathname;
 
     // Require auth for owner and onboarding
