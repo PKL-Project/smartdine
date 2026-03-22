@@ -1,10 +1,12 @@
 # SmartDine (Next.js + Prisma)
 
 Aplikacja FullStack do rezerwacji stolików i przed-zamówień dla restauracji. Użytkownicy logują się przy użyciu "magic link", wybierają rolę (Właściciel lub Klient), a następnie:
+
 - **Właściciele**: tworzą restaurację, zarządzają stolikami/menu, akceptują/odrzucają rezerwacje.
 - **Klienci**: przeglądają restauracje i dokonują rezerwacji (z opcjonalnym przed-zamówieniem).
 
 ## Technologie
+
 - Next.js (App Router) + TypeScript
 - Tailwind + shadcn/ui
 - Auth.js (NextAuth) — logowanie e‑mailem z linkiem magicznym przez Resend
@@ -17,9 +19,11 @@ Aplikacja FullStack do rezerwacji stolików i przed-zamówień dla restauracji. 
 - **Node 20+** (zalecana wersja LTS 20)
 - Zalecane: **nvm**
   Repo zawiera **`.nvmrc`**. W katalogu głównym projektu:
+
   ```bash
   nvm use    # przełącza na właściwą wersję Node
   ```
+
   Jeśli nie używasz nvm, upewnij się, że `node -v` pokazuje **v20.x** lub nowszą.
 
 - **Konto Resend** (do wysyłki linku magicznego) ze zweryfikowaną domeną nadawcy (lub tryb testowy).
@@ -30,14 +34,16 @@ Aplikacja FullStack do rezerwacji stolików i przed-zamówień dla restauracji. 
 ## Szybki start
 
 ### 1) Klonowanie + instalacja
+
 ```bash
-git clone git@github.com:PKL-Project/pkl-restaurant.git
-cd restaurant-reserve
+git clone git@github.com:PKL-Project/smartdine.git
+cd smartdine
 nvm use                 # opcjonalnie, ale zalecane
 npm install
 ```
 
 ### 2) Zmienne środowiskowe
+
 Utwórz plik `.env.local` w katalogu głównym (możesz też dodać do repo plik `.env.example`):
 
 ```env
@@ -56,32 +62,30 @@ EMAIL_FROM="auth@your-verified-domain.com"
 > Upewnij się, że domena w `EMAIL_FROM` jest zweryfikowana w Resend.
 
 ### 3) Baza danych (Prisma + SQLite)
+
 Uruchom początkową migrację (utworzy `prisma/dev.db`) i wygeneruj klienta Prisma:
+
 ```bash
 npx prisma migrate dev
 npx prisma generate
 ```
 
-### 4) Seed (dane demo + właściciel)
-Skrypt seed tworzy konto demo właściciela i przykładową restaurację.
-```bash
-npx prisma db seed
-```
-- E‑mail właściciela jest zdefiniowany na górze pliku `prisma/seed.js` (domyślnie: `owner@example.com`).
-- Zaloguj się tym adresem, aby wejść do `/owner`.
+### 4) Start aplikacji
 
-### 5) Start aplikacji
 ```bash
 npm run dev
 ```
+
 Odwiedź http://localhost:3000
 
 **Pierwsze logowanie:**
+
 - Zaloguj się swoim e‑mailem (link magiczny przez Resend).
 - Zostaniesz przeniesiony na **/onboarding**, aby wybrać **Owner** lub **Klient**.
 - Właściciele trafią na **/owner**; Klienci na **/client**.
 
 **Tryb deweloperski (Link magiczny w konsoli):**
+
 - W trybie deweloperskim (`NODE_ENV=development`), link magiczny **NIE jest wysyłany emailem**.
 - Zamiast tego, link jest **wyświetlany w terminalu/konsoli** jako klikalny URL.
 - Sprawdź output konsoli dla: `🔗 Link logowania (kliknij aby się zalogować)`
@@ -92,6 +96,7 @@ Odwiedź http://localhost:3000
 ## Ściąga (Prisma & DB)
 
 ### Zmiany w schemacie (dodawanie/modyfikacja modeli)
+
 1. **Utwórz migrację** (aktualizuje też SQLite):
    ```bash
    npx prisma migrate dev --name <twoja_zmiana>
@@ -100,24 +105,20 @@ Odwiedź http://localhost:3000
    ```bash
    npx prisma generate
    ```
-> `migrate dev` zwykle uruchamia też `generate`, ale w trakcie developmentu bezpiecznie jest odpalić oba polecenia.
+   > `migrate dev` zwykle uruchamia też `generate`, ale w trakcie developmentu bezpiecznie jest odpalić oba polecenia.
 
 ### Otwórz Prisma Studio
+
 ```bash
 npx prisma studio
 ```
 
-### Wykonaj seed
-```bash
-npx prisma db seed
-```
-- Uruchamia skrypt z `package.json` → `"prisma": { "seed": "node prisma/seed.js" }`.
-- Seed **tworzy/aktualizuje** konto demo właściciela (rola `OWNER`) i przypisuje `ownerId` do przykładowej restauracji.
-
 ### Zresetuj bazę (drop & recreate)
+
 ```bash
 npx prisma migrate reset
 ```
+
 - Odtwarza bazę i **automatycznie uruchamia seed**.
 
 ---
@@ -125,28 +126,69 @@ npx prisma migrate reset
 ## Skrypty
 
 ### Rozwój aplikacji
+
 - `npm run dev` — uruchomienie Next.js w trybie dev
 - `npm run build` — build produkcyjny
 - `npm start` — start serwera produkcyjnego
 
 ### Zarządzanie bazą danych
+
 - `npx prisma studio` — otwórz Prisma Studio (UI bazy danych)
 - `npx prisma migrate dev --name <nazwa>` — utwórz nową migrację
 - `npx prisma generate` — regeneruj klienta Prisma
 - `npx prisma migrate reset` — usuń i odtwórz bazę (uruchamia seed)
-- `npx prisma db seed` — tylko seed
 - `npm run db:clear` — wyczyść wszystkie dane z bazy
-- `npm run db:reset` — wyczyść bazę i uruchom domyślny seed
 
 ### Skrypty szybkiej konfiguracji
 
-#### Utwórz restaurację z kontem właściciela
+#### Seedowanie wielu restauracji (Zalecane)
+
+Tworzy 5 zróżnicowanych restauracji z realistycznymi menu, różnymi godzinami i kuchniami:
+
+```bash
+npm run seed:all
+```
+
+**Co tworzy:**
+
+1. **Bella Italia** (Włoska) - owner1@example.com
+   - Pn-Sob, 12:00-23:00, sloty 90-min
+   - Menu: Antipasti, Pasta, Pizza, Dolci
+
+2. **Sushi Master** (Japońska) - owner2@example.com
+   - Codziennie, 13:00-22:00, sloty 60-min
+   - Menu: Maki, Nigiri, Sashimi, Dodatki
+
+3. **Burgerholic** (Amerykańska) - owner3@example.com
+   - Codziennie, 11:00-23:00, sloty 60-min
+   - Menu: Burgery Classic i Premium, Dodatki, Napoje
+
+4. **Green Garden** (Wegańska) - owner4@example.com
+   - Tylko Pn-Pt, 9:00-20:00, sloty 90-min (ze śniadaniami)
+   - Menu: Śniadania, Bowls, Dania główne, Napoje
+
+5. **Steakhouse Premium** (Fine Dining) - owner5@example.com
+   - Tylko Wt-Sob, 17:00-23:00, sloty 120-min (tylko kolacje)
+   - Menu: Przystawki, Steki Premium, Dodatki, Wina
+
+Każda restauracja zawiera:
+
+- Konto właściciela (owner1-5@example.com)
+- 6 stolików (różne pojemności)
+- Realistyczne godziny otwarcia i sloty czasowe
+- Kompletne menu z 3-4 kategoriami i 3-8 pozycjami w kategorii
+- Wszystkie pozycje z polskimi opisami i cenami
+
+#### Utwórz pojedynczą restaurację z kontem właściciela
+
 Tworzy w pełni skonfigurowaną restaurację z menu, godzinami otwarcia i slotami czasowymi:
+
 ```bash
 npm run seed:restaurant "Nazwa Restauracji" wlasciciel@example.com
 ```
 
 **Co tworzy:**
+
 - Konto właściciela z podanym adresem email
 - Restauracja o podanej nazwie (slug generowany automatycznie)
 - 6 stolików (3x 2-osobowe, 2x 4-osobowe, 1x 6-osobowy)
@@ -159,6 +201,7 @@ npm run seed:restaurant "Nazwa Restauracji" wlasciciel@example.com
   - Napoje - 4 pozycje
 
 **Przykład:**
+
 ```bash
 npm run seed:restaurant "Bistro Aurora" wlasciciel@restauracja.com
 ```
@@ -166,16 +209,20 @@ npm run seed:restaurant "Bistro Aurora" wlasciciel@restauracja.com
 Skrypt wyświetla slug restauracji oraz adresy URL dla panelu klienta i właściciela.
 
 #### Utwórz konto klienta
+
 Tworzy konto użytkownika klienta:
+
 ```bash
 npm run create:client klient@example.com
 ```
 
 **Co tworzy:**
+
 - Konto klienta z podanym adresem email
 - Gotowe do natychmiastowego dokonywania rezerwacji
 
 **Przykład:**
+
 ```bash
 npm run create:client jan@example.com
 ```
@@ -195,9 +242,11 @@ npm run create:client jan@example.com
 
 - **"Module not found: Can't resolve 'nodemailer'"**
   Email provider Auth.js importuje `nodemailer` nawet jeśli wysyłasz przez Resend. Zainstaluj go aby zaspokoić import:
+
   ```bash
   npm i nodemailer
   ```
+
   (Alternatywnie, użyj własnego providera, który wywołuje Resend bezpośrednio.)
 
 - **Link magiczny nie dociera (Produkcja)**
@@ -217,4 +266,3 @@ npm run create:client jan@example.com
 - `src/app` — trasy Next.js App Router (`/client`, `/owner`, API pod `/api/**`)
 - `src/lib` — klient Prisma, konfiguracja Auth, helpery
 - `prisma/schema.prisma` — schemat bazy
-- `prisma/seed.js` — seed: właściciel demo + przykładowa restauracja

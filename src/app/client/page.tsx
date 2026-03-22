@@ -95,7 +95,12 @@ export default function ClientHomePage() {
         <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
           <CardContent className="p-12 text-center">
             <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
             </svg>
             <p className="text-gray-600">Brak {isPast ? "przeszłych" : "nadchodzących"} rezerwacji</p>
           </CardContent>
@@ -109,9 +114,7 @@ export default function ClientHomePage() {
           <Card
             key={res.id}
             className={`rounded-2xl backdrop-blur-sm shadow-lg transition-all duration-300 ${
-              isPast
-                ? "bg-gray-100/80 opacity-70"
-                : "bg-white/80 hover:shadow-xl hover:scale-[1.02]"
+              isPast ? "bg-gray-100/80 opacity-70" : "bg-white/80 hover:shadow-xl hover:scale-[1.02]"
             }`}
           >
             <CardContent className="p-6">
@@ -135,18 +138,32 @@ export default function ClientHomePage() {
                 <div className="space-y-2">
                   <div className={`flex items-center gap-2 text-sm ${isPast ? "text-gray-500" : "text-gray-700"}`}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
-                    <span>{new Date(res.startTime).toLocaleString("pl-PL", {
-                      dateStyle: "medium",
-                      timeStyle: "short"
-                    })}</span>
+                    <span>
+                      {new Date(res.startTime).toLocaleString("pl-PL", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </span>
                   </div>
                   <div className={`flex items-center gap-2 text-sm ${isPast ? "text-gray-500" : "text-gray-700"}`}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
                     </svg>
-                    <span>{res.partySize} {res.partySize === 1 ? "osoba" : res.partySize < 5 ? "osoby" : "osób"}</span>
+                    <span>
+                      {res.partySize} {res.partySize === 1 ? "osoba" : res.partySize < 5 ? "osoby" : "osób"}
+                    </span>
                   </div>
                 </div>
 
@@ -170,28 +187,65 @@ export default function ClientHomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex flex-col items-center">
       <div className="w-full max-w-6xl mx-auto p-6 space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            Witaj w Restaurant Reserve
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Znajdź idealną restaurację i zarezerwuj stolik w kilka kliknięć
-          </p>
+        {/* Hero Header */}
+        <div className="text-center space-y-6 py-8">
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 bg-clip-text text-transparent animate-gradient">
+              Witaj w SmartDine
+            </h1>
+            <p className="text-gray-700 text-xl md:text-2xl font-light max-w-2xl mx-auto">
+              Znajdź idealną restaurację i zarezerwuj stolik w kilka kliknięć
+            </p>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="flex justify-center gap-8 pt-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-orange-600">{restaurants.length}</div>
+              <div className="text-sm text-gray-600">{restaurants.length === 1 ? "Restauracja" : "Restauracji"}</div>
+            </div>
+            {session?.user && (
+              <>
+                <div className="h-12 w-px bg-gray-300"></div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-amber-600">{reservations.length}</div>
+                  <div className="text-sm text-gray-600">
+                    {reservations.length === 1 ? "Rezerwacja" : reservations.length < 5 ? "Rezerwacje" : "Rezerwacji"}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex justify-center">
             <TabsList className="max-w-md bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl p-1 h-14">
-              <TabsTrigger value="restaurants" className="flex-1 rounded-xl text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all">
+              <TabsTrigger
+                value="restaurants"
+                className="flex-1 rounded-xl text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all"
+              >
                 <svg className="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
                 </svg>
                 Restauracje
               </TabsTrigger>
-              <TabsTrigger value="reservations" className="flex-1 rounded-xl text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all">
+              <TabsTrigger
+                value="reservations"
+                className="flex-1 rounded-xl text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all"
+              >
                 <svg className="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
                 Moje rezerwacje
               </TabsTrigger>
@@ -202,8 +256,18 @@ export default function ClientHomePage() {
             {restaurants.length === 0 ? (
               <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardContent className="p-12 text-center">
-                  <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <svg
+                    className="w-16 h-16 mx-auto text-gray-400 mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
                   </svg>
                   <p className="text-gray-600 text-lg">Brak dostępnych restauracji</p>
                 </CardContent>
@@ -214,22 +278,34 @@ export default function ClientHomePage() {
                   <Link href={`/restaurants/${r.slug}`} key={r.id} className="group">
                     <Card className="overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] h-full">
                       {r.imageUrl ? (
-                        <img src={r.imageUrl} alt={r.name} className="w-full h-48 object-cover group-hover:brightness-110 transition-all" />
+                        <img
+                          src={r.imageUrl}
+                          alt={r.name}
+                          className="w-full h-48 object-cover group-hover:brightness-110 transition-all"
+                        />
                       ) : (
                         <div className="w-full h-48 bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center">
-                          <svg className="w-20 h-20 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          <svg
+                            className="w-20 h-20 text-orange-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                            />
                           </svg>
                         </div>
                       )}
                       <CardContent className="p-5 space-y-3">
-                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{r.name}</h2>
-                        {r.description && (
-                          <p className="text-sm text-gray-600 line-clamp-2">{r.description}</p>
-                        )}
-                        <Button
-                          className="w-full mt-3 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-all group-hover:scale-105"
-                        >
+                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+                          {r.name}
+                        </h2>
+                        {r.description && <p className="text-sm text-gray-600 line-clamp-2">{r.description}</p>}
+                        <Button className="w-full mt-3 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-all group-hover:scale-105">
                           Zobacz menu i zarezerwuj
                         </Button>
                       </CardContent>
@@ -258,8 +334,18 @@ export default function ClientHomePage() {
               ) : reservations.length === 0 ? (
                 <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
                   <CardContent className="p-12 text-center space-y-4">
-                    <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-16 h-16 mx-auto text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                     <div>
                       <p className="text-gray-900 text-lg font-semibold mb-1">Nie masz jeszcze żadnych rezerwacji</p>

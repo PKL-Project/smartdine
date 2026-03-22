@@ -189,4 +189,18 @@
       linear-gradient(to bottom, rgb(0 0 0 / 0.1) 1px, transparent 1px);
     background-size: 4rem 4rem;
   }
+
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient {
+    background-size: 200% auto;
+    animation: gradient-shift 8s ease infinite;
+  }
 }

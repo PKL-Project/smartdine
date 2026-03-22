@@ -1,5 +1,5 @@
 {
-  "name": "restaurant-reserve",
+  "name": "smartdine",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:clear": "node scripts/clearDb.js",
-    "db:seed": "node prisma/seed.js",
-    "db:reset": "npm run db:clear && npm run db:seed",
+    "seed:all": "node scripts/seedMultipleRestaurants.js",
     "seed:restaurant": "node scripts/seedRestaurant.js",
     "create:client": "node scripts/createClient.js"
   },
@@ -44,8 +43,5 @@
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
   }
 }
