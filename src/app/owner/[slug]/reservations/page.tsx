@@ -58,7 +58,7 @@ export default function OwnerReservations() {
   }, [fetchData]);
 
   // Setup polling
-  const { isRefreshing, refresh } = usePolling({
+  const { isRefreshing, refresh, lastRefresh } = usePolling({
     enabled: true,
     onRefresh: fetchData,
   });
@@ -206,7 +206,7 @@ export default function OwnerReservations() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
             Rezerwacje — {data.name}
           </h1>
-          <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} />
+          <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} lastRefresh={lastRefresh} />
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>

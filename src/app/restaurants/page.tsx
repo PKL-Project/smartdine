@@ -37,7 +37,7 @@ export default function RestaurantsPage() {
   }, [fetchData]);
 
   // Setup polling
-  const { isRefreshing, refresh } = usePolling({
+  const { isRefreshing, refresh, lastRefresh } = usePolling({
     enabled: true,
     onRefresh: fetchData,
   });
@@ -62,7 +62,7 @@ export default function RestaurantsPage() {
             </h1>
             <p className="text-sm text-gray-600">Przeglądaj dostępne restauracje</p>
           </div>
-          <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} />
+          <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} lastRefresh={lastRefresh} />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
