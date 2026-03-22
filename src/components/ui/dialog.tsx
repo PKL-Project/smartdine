@@ -13,12 +13,12 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      onClick={() => onOpenChange(false)}
-    >
-      <div className="fixed inset-0 bg-black/50" />
-      <div onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+      <div
+        className="fixed inset-0 bg-black/50 cursor-pointer"
+        onClick={() => onOpenChange(false)}
+      />
+      <div className="relative z-10" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>

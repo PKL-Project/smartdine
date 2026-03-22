@@ -197,39 +197,39 @@ export default function ReservationPage() {
                     Nie można anulować rezerwacji - pozostało mniej niż 24 godziny do zaplanowanego czasu.
                   </p>
                 )}
-
-                {/* Cancel Confirmation Dialog */}
-                <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Anulować rezerwację?</DialogTitle>
-                      <DialogDescription>
-                        Czy na pewno chcesz anulować tę rezerwację? Ta operacja jest nieodwracalna.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowCancelDialog(false)}
-                        disabled={cancelling}
-                      >
-                        Nie, zachowaj
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleCancelReservation}
-                        disabled={cancelling}
-                      >
-                        {cancelling ? "Anuluję..." : "Tak, anuluj"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
               </>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Anulować rezerwację?</DialogTitle>
+            <DialogDescription>
+              Czy na pewno chcesz anulować tę rezerwację? Ta operacja jest nieodwracalna.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+              disabled={cancelling}
+            >
+              Nie, zachowaj
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelReservation}
+              disabled={cancelling}
+            >
+              {cancelling ? "Anuluję..." : "Tak, anuluj"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
