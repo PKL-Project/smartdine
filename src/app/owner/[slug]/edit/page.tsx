@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -23,15 +23,29 @@ interface OpeningHourConfig {
   closeMinutes: number;
 }
 
+interface RestaurantData {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  slotDurationMinutes: number;
+  tableGroups: TableConfig[];
+  hours: OpeningHourConfig[];
+  timeSlots: TimeSlotConfig[];
+}
+
 const WEEKDAYS = ["Niedziela", "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota"];
 
-export default function NewRestaurantPage() {
+export default function EditRestaurantPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
   const [desc, setDesc] = useState("");
   const [slotDuration, setSlotDuration] = useState(90);
 
-  // Table management
   const [tables, setTables] = useState<TableConfig[]>([
     { capacity: 2, quantity: 0 },
     { capacity: 4, quantity: 0 },
@@ -39,21 +53,40 @@ export default function NewRestaurantPage() {
     { capacity: 8, quantity: 0 },
   ]);
 
-  // Opening hours
-  const [openingHours, setOpeningHours] = useState<OpeningHourConfig[]>([
-    { weekday: 1, openMinutes: 600, closeMinutes: 1320 }, // Mon 10:00-22:00
-    { weekday: 2, openMinutes: 600, closeMinutes: 1320 },
-    { weekday: 3, openMinutes: 600, closeMinutes: 1320 },
-    { weekday: 4, openMinutes: 600, closeMinutes: 1320 },
-    { weekday: 5, openMinutes: 600, closeMinutes: 1320 },
-    { weekday: 6, openMinutes: 600, closeMinutes: 1320 },
-  ]);
-
-  // Time slots
+  const [openingHours, setOpeningHours] = useState<OpeningHourConfig[]>([]);
   const [numSlots, setNumSlots] = useState(8);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const router = useRouter();
+  useEffect(() => {
+    async function loadRestaurant() {
+      try {
+        const res = await fetch(`/api/owner/restaurants/${slug}`);
+        if (!res.ok) {
+          throw new Error("Failed to load restaurant");
+        }
+        const data: RestaurantData = await res.json();
+
+        setName(data.name);
+        setDesc(data.description || "");
+        setSlotDuration(data.slotDurationMinutes);
+        setNumSlots(data.timeSlots.length || 8);
+
+        // Merge existing table groups with default capacities
+        const mergedTables = [2, 4, 6, 8].map(capacity => {
+          const existing = data.tableGroups.find(g => g.capacity === capacity);
+          return { capacity, quantity: existing?.quantity || 0 };
+        });
+        setTables(mergedTables);
+
+        setOpeningHours(data.hours);
+      } catch (error) {
+        alert("Błąd wczytywania danych restauracji");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadRestaurant();
+  }, [slug]);
 
   function minutesToTime(minutes: number): string {
     const h = Math.floor(minutes / 60);
@@ -123,21 +156,18 @@ export default function NewRestaurantPage() {
       return;
     }
 
-    // Generate time slots based on slot duration and number of slots
     const timeSlots: TimeSlotConfig[] = Array.from({ length: numSlots }, (_, i) => ({
       startMinutes: i * slotDuration,
       durationMinutes: slotDuration,
     }));
 
-    // Filter out tables with quantity 0
     const validTables = tables.filter((t) => t.quantity > 0);
 
-    const res = await fetch("/api/owner/restaurants", {
-      method: "POST",
+    const res = await fetch(`/api/owner/restaurants/${slug}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        slug,
         description: desc,
         tables: validTables,
         openingHours,
@@ -153,6 +183,14 @@ export default function NewRestaurantPage() {
     router.push("/owner");
   }
 
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center">
+        <div className="text-gray-600">Ładowanie...</div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -160,10 +198,10 @@ export default function NewRestaurantPage() {
           <CardContent className="p-8 space-y-8">
             <div className="text-center">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                Nowa restauracja
+                Edytuj restaurację
               </h1>
               <p className="text-sm text-gray-600 mt-2">
-                Utwórz swoją pierwszą restaurację w SmartDine
+                Zaktualizuj ustawienia swojej restauracji
               </p>
             </div>
             <form onSubmit={submit} className="space-y-6">
@@ -179,19 +217,6 @@ export default function NewRestaurantPage() {
                     className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                     placeholder="Nazwa Twojej restauracji"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-gray-700">Slug (adres URL)</Label>
-                  <Input
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="np. bistro-aurora"
-                    required
-                    className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Będzie używany w adresie URL: smartdine.com/restaurants/{slug || "twoj-slug"}
-                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-700">Opis</Label>
@@ -347,12 +372,22 @@ export default function NewRestaurantPage() {
                 </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
-              >
-                Utwórz restaurację
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => router.push("/owner")}
+                  className="flex-1"
+                >
+                  Anuluj
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                >
+                  Zapisz zmiany
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

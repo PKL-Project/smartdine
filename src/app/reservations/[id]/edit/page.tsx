@@ -13,6 +13,7 @@ type Reservation = {
   id: string;
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "EDITED";
   startTime: string;
+  durationMinutes: number;
   partySize: number;
   tableId: string | null;
   specialRequests: string | null;
@@ -20,7 +21,7 @@ type Reservation = {
     id: string;
     name: string;
     slug: string;
-    timeSlotIntervalMinutes: number;
+    slotDurationMinutes: number;
     tables: { id: string; name: string; capacity: number }[];
     categories: {
       id: string;
@@ -35,6 +36,13 @@ type Reservation = {
   }[];
 };
 
+interface TimeSlot {
+  slotIndex: number;
+  startTime: string;
+  endTime: string;
+  available: boolean;
+}
+
 export default function EditReservationPage() {
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
@@ -46,8 +54,10 @@ export default function EditReservationPage() {
 
   // Form state
   const [party, setParty] = useState(2);
-  const [start, setStart] = useState("");
-  const [tableId, setTableId] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedSlots, setSelectedSlots] = useState<number[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [special, setSpecial] = useState("");
   const [preorder, setPreorder] = useState<Record<string, number>>({});
 
@@ -66,13 +76,8 @@ export default function EditReservationPage() {
 
         // Initialize form with existing data
         setParty(j.partySize);
-        const localDate = new Date(j.startTime);
-        setStart(
-          new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 16)
-        );
-        setTableId(j.tableId || "");
+        const reservationDate = new Date(j.startTime);
+        setSelectedDate(reservationDate.toISOString().split('T')[0]);
         setSpecial(j.specialRequests || "");
 
         // Initialize preorder
@@ -93,9 +98,114 @@ export default function EditReservationPage() {
     fetchData();
   }, [id]);
 
+  // Fetch available slots when date or party size changes
+  useEffect(() => {
+    async function fetchSlots() {
+      if (!selectedDate || !data) return;
+
+      setLoadingSlots(true);
+      try {
+        const res = await fetch(
+          `/api/restaurants/${data.restaurant.slug}/available-slots?date=${selectedDate}&partySize=${party}`
+        );
+        const slotData = await res.json();
+        setAvailableSlots(slotData.availableSlots || []);
+
+        // Auto-select current reservation slots if they match
+        if (data && slotData.availableSlots) {
+          const reservationStart = new Date(data.startTime);
+          const numSlots = Math.ceil(data.durationMinutes / data.restaurant.slotDurationMinutes);
+
+          // Find matching slots
+          const matchingSlots: number[] = [];
+          for (let i = 0; i < slotData.availableSlots.length; i++) {
+            const slot = slotData.availableSlots[i];
+            const slotTime = new Date(slot.startTime);
+            if (Math.abs(slotTime.getTime() - reservationStart.getTime()) < 60000) {
+              // Found starting slot
+              for (let j = 0; j < numSlots && i + j < slotData.availableSlots.length; j++) {
+                matchingSlots.push(i + j);
+              }
+              break;
+            }
+          }
+
+          if (matchingSlots.length > 0) {
+            setSelectedSlots(matchingSlots);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch slots:", err);
+        setAvailableSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    }
+
+    fetchSlots();
+  }, [selectedDate, party, data]);
+
+  // Handle slot selection (allow up to 2 sequential slots)
+  function handleSlotClick(slotIndex: number) {
+    if (selectedSlots.includes(slotIndex)) {
+      setSelectedSlots(selectedSlots.filter(i => i !== slotIndex));
+    } else if (selectedSlots.length === 0) {
+      setSelectedSlots([slotIndex]);
+    } else if (selectedSlots.length === 1) {
+      const firstSlot = selectedSlots[0];
+      if (slotIndex === firstSlot + 1) {
+        setSelectedSlots([firstSlot, slotIndex]);
+      } else if (slotIndex === firstSlot - 1) {
+        setSelectedSlots([slotIndex, firstSlot]);
+      } else {
+        setSelectedSlots([slotIndex]);
+      }
+    } else {
+      setSelectedSlots([slotIndex]);
+    }
+  }
+
+  function isSlotSelected(slotIndex: number): boolean {
+    return selectedSlots.includes(slotIndex);
+  }
+
+  function isOriginalReservationSlot(slotIndex: number): boolean {
+    if (!data || !availableSlots[slotIndex]) return false;
+
+    const slot = availableSlots[slotIndex];
+    const slotTime = new Date(slot.startTime);
+    const reservationStart = new Date(data.startTime);
+    const reservationEnd = new Date(reservationStart.getTime() + data.durationMinutes * 60000);
+
+    // Check if this slot is part of the original reservation
+    const slotEnd = new Date(slot.endTime);
+    return slotTime < reservationEnd && slotEnd > reservationStart;
+  }
+
+  function canSelectSlot(slotIndex: number): boolean {
+    const slot = availableSlots[slotIndex];
+    if (!slot || !slot.available) return false;
+
+    if (selectedSlots.length === 0) return true;
+    if (selectedSlots.length === 1) {
+      return true;
+    }
+    return selectedSlots.includes(slotIndex);
+  }
+
+  function formatTime(isoString: string): string {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session || !data) return;
+
+    if (selectedSlots.length === 0) {
+      setError("Proszę wybrać przynajmniej jeden slot czasowy");
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -105,13 +215,20 @@ export default function EditReservationPage() {
         .filter(([, q]) => Number(q) > 0)
         .map(([menuItemId, q]) => ({ menuItemId, quantity: Number(q) }));
 
+      // Get the start time from the first selected slot
+      const firstSlotIndex = Math.min(...selectedSlots);
+      const firstSlot = availableSlots[firstSlotIndex];
+
+      // Calculate duration based on number of slots
+      const totalDuration = selectedSlots.length * data.restaurant.slotDurationMinutes;
+
       const res = await fetch(`/api/reservations/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          startTime: new Date(start).toISOString(),
+          startTime: firstSlot.startTime,
+          durationMinutes: totalDuration,
           partySize: Number(party),
-          tableId: tableId || null,
           specialRequests: special || null,
           preorderItems,
         }),
@@ -168,11 +285,12 @@ export default function EditReservationPage() {
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-gray-700">Data i godzina</Label>
+                  <Label className="text-gray-700">Data</Label>
                   <Input
-                    type="datetime-local"
-                    value={start}
-                    onChange={(e) => setStart(e.target.value)}
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
                     required
                     className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                   />
@@ -188,21 +306,73 @@ export default function EditReservationPage() {
                     required
                     className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
                   />
+                  <p className="text-xs text-gray-500">
+                    Automatycznie dobierzemy odpowiedni stolik dla Twojej grupy
+                  </p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-gray-700">Stolik (opcjonalnie)</Label>
-                  <select
-                    className="border border-gray-300 rounded-md h-10 px-3 w-full focus:border-orange-500 focus:ring-orange-500 cursor-pointer"
-                    value={tableId}
-                    onChange={(e) => setTableId(e.target.value)}
-                  >
-                    <option value="">Dowolny</option>
-                    {data.restaurant.tables.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name} • {t.capacity} os.
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-gray-700">Dostępne sloty czasowe</Label>
+                    {selectedSlots.length > 0 && (
+                      <span className="text-xs text-gray-600">
+                        {selectedSlots.length} slot{selectedSlots.length > 1 ? 'y' : ''} ({selectedSlots.length * (data?.restaurant.slotDurationMinutes || 90)} min)
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Możesz wybrać 1 lub 2 kolejne sloty dla dłuższego pobytu
+                  </p>
+                  {loadingSlots ? (
+                    <div className="text-sm text-gray-600 p-3 border rounded-lg">
+                      Ładowanie dostępnych slotów...
+                    </div>
+                  ) : availableSlots.length === 0 ? (
+                    <div className="text-sm text-gray-600 p-3 border rounded-lg bg-gray-50">
+                      Brak dostępnych slotów w tym dniu
+                    </div>
+                  ) : (
+                    <div>
+                      {data && (
+                        <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                          <strong>Obecna rezerwacja:</strong> {new Date(data.startTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                          {' '}({data.durationMinutes} min)
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg">
+                        {availableSlots.map((slot) => {
+                          const isSelected = isSlotSelected(slot.slotIndex);
+                          const isOriginal = isOriginalReservationSlot(slot.slotIndex);
+                          const canSelect = canSelectSlot(slot.slotIndex);
+
+                          return (
+                            <button
+                              key={slot.slotIndex}
+                              type="button"
+                              disabled={!canSelect}
+                              onClick={() => handleSlotClick(slot.slotIndex)}
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                                isSelected
+                                  ? 'bg-orange-600 text-white ring-2 ring-orange-300'
+                                  : isOriginal && !isSelected
+                                  ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
+                                  : canSelect && slot.available
+                                  ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              {formatTime(slot.startTime)}
+                              {isOriginal && !isSelected && (
+                                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-700">Uwagi (opcjonalnie)</Label>
@@ -217,8 +387,8 @@ export default function EditReservationPage() {
                 <div className="flex gap-3">
                   <Button
                     type="submit"
-                    disabled={submitting}
-                    className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                    disabled={submitting || selectedSlots.length === 0}
+                    className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow disabled:opacity-50"
                   >
                     {submitting ? "Zapisuję…" : "Zapisz zmiany"}
                   </Button>

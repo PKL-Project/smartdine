@@ -124,14 +124,61 @@ npx prisma migrate reset
 
 ## Skrypty
 
+### Rozwój aplikacji
 - `npm run dev` — uruchomienie Next.js w trybie dev
 - `npm run build` — build produkcyjny
 - `npm start` — start serwera produkcyjnego
-- `npx prisma studio` — UI bazy danych
-- `npx prisma migrate dev --name <nazwa>` — dodanie migracji
-- `npx prisma generate` — regeneracja klienta
-- `npx prisma migrate reset` — drop & recreate (uruchamia seed)
+
+### Zarządzanie bazą danych
+- `npx prisma studio` — otwórz Prisma Studio (UI bazy danych)
+- `npx prisma migrate dev --name <nazwa>` — utwórz nową migrację
+- `npx prisma generate` — regeneruj klienta Prisma
+- `npx prisma migrate reset` — usuń i odtwórz bazę (uruchamia seed)
 - `npx prisma db seed` — tylko seed
+- `npm run db:clear` — wyczyść wszystkie dane z bazy
+- `npm run db:reset` — wyczyść bazę i uruchom domyślny seed
+
+### Skrypty szybkiej konfiguracji
+
+#### Utwórz restaurację z kontem właściciela
+Tworzy w pełni skonfigurowaną restaurację z menu, godzinami otwarcia i slotami czasowymi:
+```bash
+npm run seed:restaurant "Nazwa Restauracji" wlasciciel@example.com
+```
+
+**Co tworzy:**
+- Konto właściciela z podanym adresem email
+- Restauracja o podanej nazwie (slug generowany automatycznie)
+- 6 stolików (3x 2-osobowe, 2x 4-osobowe, 1x 6-osobowy)
+- Godziny otwarcia: Poniedziałek-Niedziela, 10:00-22:00
+- 8 slotów czasowych po 90 minut (10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00, 20:30)
+- Pełne menu z 4 kategoriami:
+  - Przystawki - 3 pozycje
+  - Dania główne - 4 pozycje
+  - Desery - 3 pozycje
+  - Napoje - 4 pozycje
+
+**Przykład:**
+```bash
+npm run seed:restaurant "Bistro Aurora" wlasciciel@restauracja.com
+```
+
+Skrypt wyświetla slug restauracji oraz adresy URL dla panelu klienta i właściciela.
+
+#### Utwórz konto klienta
+Tworzy konto użytkownika klienta:
+```bash
+npm run create:client klient@example.com
+```
+
+**Co tworzy:**
+- Konto klienta z podanym adresem email
+- Gotowe do natychmiastowego dokonywania rezerwacji
+
+**Przykład:**
+```bash
+npm run create:client jan@example.com
+```
 
 ---
 

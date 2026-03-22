@@ -18,6 +18,19 @@ export const GET = withReservationAccess(async (_, session, { params }) => {
           },
         },
       },
+      user: {
+        select: {
+          email: true,
+          name: true,
+        },
+      },
+      table: {
+        select: {
+          id: true,
+          name: true,
+          capacity: true,
+        },
+      },
       preorderItems: { include: { menuItem: true } },
     },
   });
@@ -51,7 +64,7 @@ export const PATCH = withReservationAccess(async (req, session, { params }) => {
   }
 
   const body = await req.json();
-  const { startTime, partySize, tableId, specialRequests, preorderItems } = body;
+  const { startTime, durationMinutes, partySize, tableId, specialRequests, preorderItems } = body;
 
   // Delete existing preorder items
   await prisma.preorderItem.deleteMany({
@@ -63,6 +76,7 @@ export const PATCH = withReservationAccess(async (req, session, { params }) => {
     where: { id },
     data: {
       startTime: startTime ? new Date(startTime) : undefined,
+      durationMinutes: durationMinutes ? Number(durationMinutes) : undefined,
       partySize: partySize ? Number(partySize) : undefined,
       tableId: tableId || null,
       specialRequests: specialRequests || null,

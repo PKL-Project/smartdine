@@ -10,11 +10,11 @@ import { ReservationStatusBadge } from "@/components/ReservationStatusBadge";
 
 type Reservation = {
   id: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "EDITED";
   startTime: string;
   partySize: number;
   restaurant: { name: string; slug: string };
-  preorderItems: { id: string; quantity: number; menuItem: { name: string } }[];
+  preorderItems: { id: string; quantity: number; menuItem: { name: string; priceCents: number } }[];
 };
 
 export default function ReservationPage() {
@@ -53,6 +53,10 @@ export default function ReservationPage() {
     onRefresh: fetchData,
   });
 
+  const formatPrice = (priceCents: number) => {
+    return (priceCents / 100).toFixed(2) + " zł";
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
       <div className="max-w-xl mx-auto p-6 space-y-6">
@@ -80,15 +84,31 @@ export default function ReservationPage() {
                 <p className="text-sm text-gray-700">Termin: {new Date(data.startTime).toLocaleString()}</p>
                 <p className="text-sm text-gray-700">Liczba osób: {data.partySize}</p>
                 {data.preorderItems?.length ? (
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium">Przed-zamówienie:</div>
-                    <ul className="list-disc list-inside text-sm text-gray-700">
-                      {data.preorderItems.map((p) => (
-                        <li key={p.id}>
-                          {p.menuItem.name} × {p.quantity}
-                        </li>
+                  <div className="space-y-2">
+                    <div className="text-sm font-semibold text-gray-900">Przed-zamówienie:</div>
+                    <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                      {data.preorderItems.map((item) => (
+                        <div key={item.id} className="flex justify-between text-sm">
+                          <span className="text-gray-700">
+                            {item.menuItem.name} × {item.quantity}
+                          </span>
+                          <span className="font-medium text-gray-900">
+                            {formatPrice(item.menuItem.priceCents * item.quantity)}
+                          </span>
+                        </div>
                       ))}
-                    </ul>
+                      <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between font-semibold">
+                        <span>Razem:</span>
+                        <span className="text-orange-600">
+                          {formatPrice(
+                            data.preorderItems.reduce(
+                              (sum, item) => sum + item.menuItem.priceCents * item.quantity,
+                              0
+                            )
+                          )}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ) : null}
                 <div className="pt-2 flex gap-3">

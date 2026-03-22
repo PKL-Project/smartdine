@@ -53,6 +53,11 @@ export default async function OwnerHome() {
                 <Link href={`/restaurants/${restaurant.slug}`}>Podgląd</Link>
               </Button>
               <Button asChild variant="secondary" className="hover:shadow-md transition-shadow">
+                <Link href={`/owner/${restaurant.slug}/edit`}>
+                  Edytuj
+                </Link>
+              </Button>
+              <Button asChild variant="secondary" className="hover:shadow-md transition-shadow">
                 <Link href={`/owner/${restaurant.slug}/menu`}>
                   Menu
                 </Link>

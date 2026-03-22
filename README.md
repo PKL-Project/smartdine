@@ -124,14 +124,61 @@ npx prisma migrate reset
 
 ## Scripts
 
+### Development
 - `npm run dev` — start Next.js in dev mode
 - `npm run build` — production build
 - `npm start` — start production server
-- `npx prisma studio` — DB UI
-- `npx prisma migrate dev --name <name>` — add migration
-- `npx prisma generate` — regenerate client
+
+### Database Management
+- `npx prisma studio` — open Prisma Studio (DB UI)
+- `npx prisma migrate dev --name <name>` — create a new migration
+- `npx prisma generate` — regenerate Prisma client
 - `npx prisma migrate reset` — drop & recreate DB (runs seed)
 - `npx prisma db seed` — run seeding only
+- `npm run db:clear` — clear all data from database
+- `npm run db:reset` — clear database and run default seed
+
+### Quick Setup Scripts
+
+#### Create a Restaurant with Owner Account
+Creates a fully configured restaurant with menu, opening hours, and time slots:
+```bash
+npm run seed:restaurant "Restaurant Name" owner@example.com
+```
+
+**What it creates:**
+- Owner account with the specified email
+- Restaurant with the given name (slug is auto-generated)
+- 6 tables (3x 2-person, 2x 4-person, 1x 6-person)
+- Opening hours: Monday-Sunday, 10:00-22:00
+- 8 time slots of 90 minutes each (10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00, 20:30)
+- Full menu with 4 categories:
+  - Przystawki (appetizers) - 3 items
+  - Dania główne (main dishes) - 4 items
+  - Desery (desserts) - 3 items
+  - Napoje (beverages) - 4 items
+
+**Example:**
+```bash
+npm run seed:restaurant "Bistro Aurora" owner@restaurant.com
+```
+
+The script outputs the restaurant slug and URLs for both client and owner panels.
+
+#### Create a Client Account
+Creates a client user account:
+```bash
+npm run create:client client@example.com
+```
+
+**What it creates:**
+- Client account with the specified email
+- Ready to make reservations immediately
+
+**Example:**
+```bash
+npm run create:client john@example.com
+```
 
 ---
 

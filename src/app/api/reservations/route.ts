@@ -36,28 +36,99 @@ export const POST = withAuth(async (req, session) => {
     );
   }
 
-  // Minimal conflict check: if tableId provided, ensure no overlap
+  // Check table availability - only CONFIRMED reservations block slots
+  const start = new Date(startTime);
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+
   if (tableId) {
-    const start = new Date(startTime);
-    const end = new Date(start.getTime() + durationMinutes * 60000);
-    const conflict = await prisma.reservation.findFirst({
+    // Specific table requested - check if it's available
+    const conflicts = await prisma.reservation.findMany({
       where: {
         tableId,
-        status: { in: ["PENDING", "CONFIRMED"] },
-        AND: [
-          { startTime: { lt: end } },
-          {
-            startTime: {
-              gt: new Date(start.getTime() - durationMinutes * 60000),
-            },
-          },
-        ],
+        status: "CONFIRMED", // Only confirmed reservations count
+      },
+      select: { startTime: true, durationMinutes: true },
+    });
+
+    // Check for any overlapping reservations
+    const hasConflict = conflicts.some((reservation) => {
+      const resStart = reservation.startTime;
+      const resEnd = new Date(resStart.getTime() + reservation.durationMinutes * 60000);
+      return start < resEnd && end > resStart;
+    });
+
+    if (hasConflict) {
+      return ErrorResponses.conflict(
+        "Time slot not available for selected table"
+      );
+    }
+  } else {
+    // No specific table - check if any table with sufficient capacity is available
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+      include: {
+        tables: {
+          where: { capacity: { gte: partySize } },
+          orderBy: { capacity: 'asc' },
+        },
       },
     });
 
-    if (conflict) {
+    if (!restaurant || restaurant.tables.length === 0) {
+      return ErrorResponses.badRequest(
+        "No tables available for the requested party size"
+      );
+    }
+
+    // Get all confirmed reservations that might overlap
+    const confirmedReservations = await prisma.reservation.findMany({
+      where: {
+        restaurantId,
+        status: "CONFIRMED",
+        OR: [
+          // Reservation starts before our slot ends
+          {
+            AND: [
+              { startTime: { lt: end } },
+              // ... and extends into our slot
+              {
+                startTime: {
+                  gte: new Date(start.getTime()),
+                },
+              },
+            ],
+          },
+          // Reservation starts during our slot
+          {
+            AND: [
+              { startTime: { gte: start } },
+              { startTime: { lt: end } },
+            ],
+          },
+        ],
+      },
+      select: { tableId: true, startTime: true, durationMinutes: true },
+    });
+
+    // Check which tables are truly available (accounting for reservation durations)
+    const bookedTableIds = new Set<string>();
+    for (const reservation of confirmedReservations) {
+      if (!reservation.tableId) continue;
+
+      const resStart = reservation.startTime;
+      const resEnd = new Date(resStart.getTime() + reservation.durationMinutes * 60000);
+
+      // Check if this reservation actually overlaps with our time slot
+      if (start < resEnd && end > resStart) {
+        bookedTableIds.add(reservation.tableId);
+      }
+    }
+
+    const availableTable = restaurant.tables.find((t) => !bookedTableIds.has(t.id));
+
+    if (!availableTable) {
       return ErrorResponses.conflict(
-        "Time slot not available for selected table"
+        "No tables available for the requested time slot and party size"
       );
     }
   }

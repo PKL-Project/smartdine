@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +32,7 @@ interface Reservation {
 export default function ClientHomePage() {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState("restaurants");
+  const [reservationsTab, setReservationsTab] = useState("next");
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +70,76 @@ export default function ClientHomePage() {
     enabled: true,
     onRefresh: fetchData,
   });
+
+  // Split reservations into next and past
+  const { nextReservations, pastReservations } = useMemo(() => {
+    const now = new Date();
+    const next: Reservation[] = [];
+    const past: Reservation[] = [];
+
+    reservations.forEach((reservation) => {
+      const reservationDate = new Date(reservation.startTime);
+      if (reservationDate >= now) {
+        next.push(reservation);
+      } else {
+        past.push(reservation);
+      }
+    });
+
+    return { nextReservations: next, pastReservations: past };
+  }, [reservations]);
+
+  const renderReservationList = (reservationsList: Reservation[], isPast = false) => {
+    if (reservationsList.length === 0) {
+      return (
+        <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
+          <CardContent className="p-6 text-center">
+            <p className="text-gray-600">Brak rezerwacji</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {reservationsList.map((res) => (
+          <Card
+            key={res.id}
+            className={`backdrop-blur-sm shadow-lg transition-shadow ${
+              isPast
+                ? "bg-gray-100/80 opacity-70"
+                : "bg-white/80 hover:shadow-xl"
+            }`}
+          >
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="space-y-1">
+                <div className={`font-medium ${isPast ? "text-gray-600" : "text-gray-900"}`}>
+                  {res.restaurant.name}
+                </div>
+                <div className={`text-sm ${isPast ? "text-gray-500" : "text-gray-600"}`}>
+                  {new Date(res.startTime).toLocaleString("pl-PL")} • {res.partySize} os.
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm ${isPast ? "text-gray-500" : "text-gray-600"}`}>Status:</span>
+                  <ReservationStatusBadge status={res.status} />
+                </div>
+              </div>
+              {isPast ? (
+                <span className="text-sm text-gray-500 italic">Zakończone</span>
+              ) : (
+                <Button
+                  asChild
+                  className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+                >
+                  <Link href={`/reservations/${res.id}`}>Szczegóły</Link>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
@@ -126,33 +197,24 @@ export default function ClientHomePage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
-                {reservations.map((res) => (
-                  <Card
-                    key={res.id}
-                    className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow"
-                  >
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="font-medium">{res.restaurant.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {new Date(res.startTime).toLocaleString("pl-PL")} • {res.partySize} os.
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">Status:</span>
-                          <ReservationStatusBadge status={res.status} />
-                        </div>
-                      </div>
-                      <Button
-                        asChild
-                        className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
-                      >
-                        <Link href={`/reservations/${res.id}`}>Szczegóły</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <Tabs value={reservationsTab} onValueChange={setReservationsTab}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="next">
+                    Nadchodzące ({nextReservations.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="past">
+                    Przeszłe ({pastReservations.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="next" className="mt-4">
+                  {renderReservationList(nextReservations, false)}
+                </TabsContent>
+
+                <TabsContent value="past" className="mt-4">
+                  {renderReservationList(pastReservations, true)}
+                </TabsContent>
+              </Tabs>
             )}
           </TabsContent>
         </Tabs>

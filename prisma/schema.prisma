@@ -72,7 +72,7 @@ model Restaurant {
   imageUrl  String?
   address   String?
   phone     String?
-  timeSlotIntervalMinutes Int @default(30)
+  slotDurationMinutes Int @default(90) // Duration of each reservation slot
   createdAt DateTime @default(now())
 
   ownerId   String
@@ -81,6 +81,7 @@ model Restaurant {
   tables    Table[]
   categories MenuCategory[]
   hours     OpeningHour[]
+  timeSlots TimeSlot[]
   reservations Reservation[]
 }
 
@@ -122,6 +123,15 @@ model OpeningHour {
   weekday      Int // 0=Sunday ... 6=Saturday
   openMinutes  Int // minutes from 00:00
   closeMinutes Int // minutes from 00:00
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model TimeSlot {
+  id           String @id @default(cuid())
+  restaurantId String
+  startMinutes Int // minutes from opening time (e.g., 0, 90, 180 for 1.5h slots)
+  durationMinutes Int // slot duration in minutes
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 }

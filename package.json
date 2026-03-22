@@ -9,7 +9,9 @@
     "lint": "next lint",
     "db:clear": "node scripts/clearDb.js",
     "db:seed": "node prisma/seed.js",
-    "db:reset": "npm run db:clear && npm run db:seed"
+    "db:reset": "npm run db:clear && npm run db:seed",
+    "seed:restaurant": "node scripts/seedRestaurant.js",
+    "create:client": "node scripts/createClient.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -25,6 +27,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "resend": "^6.0.1",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.0.17"
   },
@@ -44,5 +47,5 @@
   },
   "prisma": {
     "seed": "node prisma/seed.js"
-}
+  }
 }
