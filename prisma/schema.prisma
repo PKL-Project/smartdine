@@ -140,6 +140,7 @@ enum ReservationStatus {
   PENDING
   CONFIRMED
   CANCELLED
+  CANCELLED_BY_CLIENT
   EDITED
 }
 

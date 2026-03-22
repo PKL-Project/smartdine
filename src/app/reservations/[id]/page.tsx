@@ -7,10 +7,19 @@ import { Button } from "@/components/ui/button";
 import { usePolling } from "@/hooks/usePolling";
 import { RefreshIndicator } from "@/components/RefreshIndicator";
 import { ReservationStatusBadge } from "@/components/ReservationStatusBadge";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type Reservation = {
   id: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "EDITED";
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "CANCELLED_BY_CLIENT" | "EDITED";
   startTime: string;
   partySize: number;
   restaurant: { name: string; slug: string };
@@ -22,6 +31,8 @@ export default function ReservationPage() {
   const [data, setData] = useState<Reservation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const router = useRouter();
 
   const fetchData = useCallback(async () => {
@@ -56,6 +67,41 @@ export default function ReservationPage() {
   const formatPrice = (priceCents: number) => {
     return (priceCents / 100).toFixed(2) + " zł";
   };
+
+  const handleCancelReservation = async () => {
+    if (!data) return;
+
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/reservations/${data.id}/cancel`, {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        await fetchData();
+        toast.success("Rezerwacja została anulowana");
+        setShowCancelDialog(false);
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || "Nie można anulować rezerwacji");
+      }
+    } catch (err) {
+      console.error("Failed to cancel reservation:", err);
+      toast.error("Wystąpił błąd podczas anulowania rezerwacji");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  // Check if reservation can be cancelled (24h before)
+  const canCancel = data ? (() => {
+    const reservationTime = new Date(data.startTime);
+    const now = new Date();
+    const hoursUntilReservation = (reservationTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursUntilReservation >= 24 &&
+           data.status !== "CANCELLED" &&
+           data.status !== "CANCELLED_BY_CLIENT";
+  })() : false;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
@@ -111,18 +157,74 @@ export default function ReservationPage() {
                     </div>
                   </div>
                 ) : null}
-                <div className="pt-2 flex gap-3">
+                {/* Cancellation disclaimer */}
+                {data.status !== "CANCELLED" && data.status !== "CANCELLED_BY_CLIENT" && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-xs text-blue-800">
+                      <strong>Anulowanie rezerwacji:</strong> Możesz anulować rezerwację do 24 godzin przed zaplanowanym czasem.
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-2 flex flex-wrap gap-3">
                   <Button
                     onClick={() => router.push(`/reservations/${id}/edit`)}
                     className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
-                    disabled={data.status === "CANCELLED"}
+                    disabled={data.status === "CANCELLED" || data.status === "CANCELLED_BY_CLIENT"}
                   >
                     Edytuj rezerwację
                   </Button>
+                  {canCancel ? (
+                    <Button
+                      onClick={() => setShowCancelDialog(true)}
+                      variant="destructive"
+                    >
+                      Anuluj rezerwację
+                    </Button>
+                  ) : (
+                    data.status !== "CANCELLED" && data.status !== "CANCELLED_BY_CLIENT" && (
+                      <Button variant="destructive" disabled>
+                        Anuluj rezerwację
+                      </Button>
+                    )
+                  )}
                   <Button onClick={() => router.push("/client")} variant="outline" className="border-gray-300">
                     Wróć do listy
                   </Button>
                 </div>
+                {!canCancel && data.status !== "CANCELLED" && data.status !== "CANCELLED_BY_CLIENT" && (
+                  <p className="text-xs text-red-600">
+                    Nie można anulować rezerwacji - pozostało mniej niż 24 godziny do zaplanowanego czasu.
+                  </p>
+                )}
+
+                {/* Cancel Confirmation Dialog */}
+                <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Anulować rezerwację?</DialogTitle>
+                      <DialogDescription>
+                        Czy na pewno chcesz anulować tę rezerwację? Ta operacja jest nieodwracalna.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowCancelDialog(false)}
+                        disabled={cancelling}
+                      >
+                        Nie, zachowaj
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleCancelReservation}
+                        disabled={cancelling}
+                      >
+                        {cancelling ? "Anuluję..." : "Tak, anuluj"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </>
             )}
           </CardContent>

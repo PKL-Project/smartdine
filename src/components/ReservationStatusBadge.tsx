@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type ReservationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "EDITED";
+type ReservationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "CANCELLED_BY_CLIENT" | "EDITED";
 
 interface ReservationStatusBadgeProps {
   status: ReservationStatus | string;
@@ -19,6 +19,10 @@ const statusConfig = {
   CANCELLED: {
     label: "Anulowana",
     className: "bg-red-100 text-red-700 border-red-200",
+  },
+  CANCELLED_BY_CLIENT: {
+    label: "Anulowana przez klienta",
+    className: "bg-gray-100 text-gray-700 border-gray-200",
   },
   EDITED: {
     label: "Edytowana - oczekuje",
