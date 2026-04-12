@@ -22,7 +22,7 @@ type Reservation = {
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "CANCELLED_BY_CLIENT" | "EDITED";
   startTime: string;
   partySize: number;
-  restaurant: { name: string; slug: string };
+  restaurant: { name: string; slug: string; owner: { email: string; name: string | null } };
   preorderItems: { id: string; quantity: number; menuItem: { name: string; priceCents: number } }[];
 };
 
@@ -120,9 +120,14 @@ export default function ReservationPage() {
               <p className="text-gray-600">Ładowanie…</p>
             ) : (
               <>
-                <p className="text-sm">
-                  Restauracja: <span className="font-medium">{data.restaurant.name}</span>
-                </p>
+                <div className="space-y-1">
+                  <p className="text-sm">
+                    Restauracja: <span className="font-medium">{data.restaurant.name}</span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Właściciel: <span className="font-medium">{data.restaurant.owner.email}</span>
+                  </p>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Status:</span>
                   <ReservationStatusBadge status={data.status} />

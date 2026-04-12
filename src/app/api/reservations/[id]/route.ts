@@ -9,6 +9,12 @@ export const GET = withReservationAccess(async (_, session, { params }) => {
     include: {
       restaurant: {
         include: {
+          owner: {
+            select: {
+              email: true,
+              name: true,
+            },
+          },
           tables: { orderBy: { capacity: "asc" } },
           categories: {
             include: {

@@ -154,8 +154,14 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button
+                  onClick={() => router.push("/restaurants")}
+                  className="px-6 py-3 bg-white text-orange-600 rounded-full font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-200 text-base border-2 border-orange-600"
+                >
+                  Przeglądaj restauracje
+                </button>
+                <button
                   onClick={() => signIn()}
-                  className="px-8 py-4 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-full font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-200 text-lg"
+                  className="px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-full font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-200 text-base"
                 >
                   Zaloguj się
                 </button>

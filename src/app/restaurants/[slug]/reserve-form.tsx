@@ -191,12 +191,36 @@ export default function ReserveForm({
     return (priceCents / 100).toFixed(2) + " zł";
   };
 
+  const isAuthenticated = !!session;
+  const canMakeReservation = isAuthenticated && !isOwnerPreview;
+
   return (
     <Card className="rounded-2xl shadow-lg bg-white/80 backdrop-blur-sm">
       <CardContent className="p-6">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-4">
           Rezerwacja
         </h2>
+        {!isAuthenticated && (
+          <div className="mb-4 bg-orange-50 border-2 border-orange-400 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-orange-900">Zaloguj się, aby dokonać rezerwacji</p>
+                <p className="text-sm text-orange-700">Aby zarezerwować stolik, musisz najpierw się zalogować.</p>
+              </div>
+              <Button
+                onClick={() => signIn()}
+                className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
+              >
+                Zaloguj się
+              </Button>
+            </div>
+          </div>
+        )}
         <form
           onSubmit={submitReservation}
           className="grid md:grid-cols-2 gap-6"
@@ -210,7 +234,8 @@ export default function ReserveForm({
                 onChange={(e) => setSelectedDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
                 required
-                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                disabled={!canMakeReservation}
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500 disabled:cursor-not-allowed"
               />
             </div>
             <div className="space-y-2">
@@ -222,7 +247,8 @@ export default function ReserveForm({
                 value={party}
                 onChange={(e) => setParty(Number(e.target.value))}
                 required
-                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                disabled={!canMakeReservation}
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500 disabled:cursor-not-allowed"
               />
               <p className="text-xs text-gray-500">
                 Automatycznie dobierzemy odpowiedni stolik dla Twojej grupy
@@ -238,9 +264,13 @@ export default function ReserveForm({
                 )}
               </div>
               <p className="text-xs text-gray-500">
-                Możesz wybrać 1 lub 2 kolejne sloty dla dłuższego pobytu
+                {canMakeReservation ? 'Możesz wybrać 1 lub 2 kolejne sloty dla dłuższego pobytu' : 'Zaloguj się, aby zobaczyć dostępne sloty'}
               </p>
-              {loadingSlots ? (
+              {!canMakeReservation ? (
+                <div className="text-sm text-gray-600 p-3 border rounded-lg bg-gray-50">
+                  Dostępne sloty są widoczne tylko dla zalogowanych użytkowników
+                </div>
+              ) : loadingSlots ? (
                 <div className="text-sm text-gray-600 p-3 border rounded-lg">
                   Ładowanie dostępnych slotów...
                 </div>
@@ -281,14 +311,15 @@ export default function ReserveForm({
                 value={special}
                 onChange={(e) => setSpecial(e.target.value)}
                 placeholder="Np. urodziny, krzesełko dla dziecka…"
-                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                disabled={!canMakeReservation}
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500 disabled:cursor-not-allowed"
               />
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="space-y-2">
               <Button
                 type="submit"
-                disabled={loading || selectedSlots.length === 0 || isOwnerPreview}
+                disabled={loading || selectedSlots.length === 0 || !canMakeReservation}
                 className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow disabled:opacity-50 w-full"
               >
                 {loading ? "Rezerwuję…" : "Zarezerwuj"}
@@ -298,6 +329,11 @@ export default function ReserveForm({
                   Rezerwacje są wyłączone w trybie podglądu właściciela
                 </p>
               )}
+              {!isAuthenticated && (
+                <p className="text-xs text-gray-600 text-center">
+                  Zaloguj się, aby dokonać rezerwacji
+                </p>
+              )}
             </div>
           </div>
 
@@ -305,6 +341,11 @@ export default function ReserveForm({
             <h3 className="font-semibold text-lg text-gray-900">
               Zamówienie z wyprzedzeniem (opcjonalne)
             </h3>
+            {!canMakeReservation && (
+              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border">
+                Zaloguj się, aby móc złożyć zamówienie z wyprzedzeniem
+              </p>
+            )}
             {restaurant.categories.map((c) => (
               <div key={c.id} className="space-y-2">
                 <div className="text-sm font-medium text-gray-700">{c.name}</div>
@@ -321,7 +362,8 @@ export default function ReserveForm({
                       type="number"
                       min={0}
                       placeholder="0"
-                      className="w-20 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                      disabled={!canMakeReservation}
+                      className="w-20 border-gray-300 focus:border-orange-500 focus:ring-orange-500 disabled:cursor-not-allowed"
                       value={preorder[it.id] ?? ""}
                       onChange={(e) =>
                         setPreorder((prev) => ({
