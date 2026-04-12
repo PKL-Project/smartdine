@@ -3,20 +3,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { usePolling } from "@/hooks/usePolling";
 import { RefreshIndicator } from "@/components/RefreshIndicator";
 import { ReservationStatusBadge } from "@/components/ReservationStatusBadge";
-
-interface Restaurant {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  imageUrl: string | null;
-}
 
 interface Reservation {
   id: string;
@@ -31,22 +24,12 @@ interface Reservation {
 
 export default function ClientHomePage() {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState("restaurants");
+  const router = useRouter();
   const [reservationsTab, setReservationsTab] = useState("next");
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    // Fetch restaurants
-    try {
-      const restaurantsRes = await fetch("/api/restaurants");
-      const restaurantsData = await restaurantsRes.json();
-      setRestaurants(restaurantsData);
-    } catch (err) {
-      console.error("Failed to fetch restaurants:", err);
-    }
-
     // Fetch user's reservations if authenticated
     if (session?.user) {
       try {
@@ -198,66 +181,52 @@ export default function ClientHomePage() {
             </p>
           </div>
 
-          {/* Quick Stats */}
-          <div className="flex justify-center gap-8 pt-4">
+          {/* Quick Stats & CTA */}
+          <div className="flex flex-col items-center gap-6 pt-4">
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">{restaurants.length}</div>
-              <div className="text-sm text-gray-600">{restaurants.length === 1 ? "Restauracja" : "Restauracji"}</div>
+              <div className="text-3xl font-bold text-amber-600">{reservations.length}</div>
+              <div className="text-sm text-gray-600">
+                {reservations.length === 1 ? "Rezerwacja" : reservations.length < 5 ? "Rezerwacje" : "Rezerwacji"}
+              </div>
             </div>
-            {session?.user && (
-              <>
-                <div className="h-12 w-px bg-gray-300"></div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-amber-600">{reservations.length}</div>
-                  <div className="text-sm text-gray-600">
-                    {reservations.length === 1 ? "Rezerwacja" : reservations.length < 5 ? "Rezerwacje" : "Rezerwacji"}
-                  </div>
-                </div>
-              </>
-            )}
+
+            <Button
+              onClick={() => router.push("/restaurants")}
+              className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-all text-lg px-8 py-6 rounded-xl"
+            >
+              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+              Przeglądaj restauracje
+            </Button>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="flex justify-center">
-            <TabsList className="max-w-md bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl p-1 h-14">
-              <TabsTrigger
-                value="restaurants"
-                className="flex-1 rounded-xl text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all"
-              >
-                <svg className="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                  />
-                </svg>
-                Restauracje
-              </TabsTrigger>
-              <TabsTrigger
-                value="reservations"
-                className="flex-1 rounded-xl text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white transition-all"
-              >
-                <svg className="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                Moje rezerwacje
-              </TabsTrigger>
-            </TabsList>
-          </div>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} lastRefresh={lastRefresh} />
+            </div>
 
-          <TabsContent value="restaurants" className="mt-8">
-            {restaurants.length === 0 ? (
+            {loading ? (
               <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardContent className="p-12 text-center">
+                  <div className="animate-pulse space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : reservations.length === 0 ? (
+              <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
+                <CardContent className="p-12 text-center space-y-4">
                   <svg
-                    className="w-16 h-16 mx-auto text-gray-400 mb-4"
+                    className="w-16 h-16 mx-auto text-gray-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -266,122 +235,43 @@ export default function ClientHomePage() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-gray-600 text-lg">Brak dostępnych restauracji</p>
+                  <div>
+                    <p className="text-gray-900 text-lg font-semibold mb-1">Nie masz jeszcze żadnych rezerwacji</p>
+                    <p className="text-gray-600">Zarezerwuj stolik w jednej z naszych restauracji</p>
+                  </div>
+                  <Button
+                    onClick={() => router.push("/restaurants")}
+                    className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-all"
+                  >
+                    Przeglądaj restauracje
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {restaurants.map((r) => (
-                  <Link href={`/restaurants/${r.slug}`} key={r.id} className="group">
-                    <Card className="overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] h-full">
-                      {r.imageUrl ? (
-                        <img
-                          src={r.imageUrl}
-                          alt={r.name}
-                          className="w-full h-48 object-cover group-hover:brightness-110 transition-all"
-                        />
-                      ) : (
-                        <div className="w-full h-48 bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center">
-                          <svg
-                            className="w-20 h-20 text-orange-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                      <CardContent className="p-5 space-y-3">
-                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-                          {r.name}
-                        </h2>
-                        {r.description && <p className="text-sm text-gray-600 line-clamp-2">{r.description}</p>}
-                        <Button className="w-full mt-3 bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-all group-hover:scale-105">
-                          Zobacz menu i zarezerwuj
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
+              <Tabs value={reservationsTab} onValueChange={setReservationsTab} className="space-y-4">
+                <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/80 backdrop-blur-sm shadow-md rounded-xl p-1">
+                  <TabsTrigger value="next" className="rounded-lg">
+                    Nadchodzące ({nextReservations.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="past" className="rounded-lg">
+                    Przeszłe ({pastReservations.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="next" className="mt-6">
+                  {renderReservationList(nextReservations, false)}
+                </TabsContent>
+
+                <TabsContent value="past" className="mt-6">
+                  {renderReservationList(pastReservations, true)}
+                </TabsContent>
+              </Tabs>
             )}
-          </TabsContent>
-
-          <TabsContent value="reservations" className="mt-8">
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} lastRefresh={lastRefresh} />
-              </div>
-
-              {loading ? (
-                <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
-                  <CardContent className="p-12 text-center">
-                    <div className="animate-pulse space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : reservations.length === 0 ? (
-                <Card className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg">
-                  <CardContent className="p-12 text-center space-y-4">
-                    <svg
-                      className="w-16 h-16 mx-auto text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <div>
-                      <p className="text-gray-900 text-lg font-semibold mb-1">Nie masz jeszcze żadnych rezerwacji</p>
-                      <p className="text-gray-600">Zarezerwuj stolik w jednej z naszych restauracji</p>
-                    </div>
-                    <Button
-                      onClick={() => setActiveTab("restaurants")}
-                      className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-all"
-                    >
-                      Przeglądaj restauracje
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Tabs value={reservationsTab} onValueChange={setReservationsTab} className="space-y-4">
-                  <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/80 backdrop-blur-sm shadow-md rounded-xl p-1">
-                    <TabsTrigger value="next" className="rounded-lg">
-                      Nadchodzące ({nextReservations.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="past" className="rounded-lg">
-                      Przeszłe ({pastReservations.length})
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="next" className="mt-6">
-                    {renderReservationList(nextReservations, false)}
-                  </TabsContent>
-
-                  <TabsContent value="past" className="mt-6">
-                    {renderReservationList(pastReservations, true)}
-                  </TabsContent>
-                </Tabs>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </main>
   );

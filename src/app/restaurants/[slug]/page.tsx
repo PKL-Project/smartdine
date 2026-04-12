@@ -3,6 +3,7 @@ import { money } from "@/lib/format";
 import ReserveForm from "./reserve-form";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { BackToRestaurantsButton } from "@/components/BackToRestaurantsButton";
 
 export default async function RestaurantPage({
   params,
@@ -39,6 +40,8 @@ export default async function RestaurantPage({
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
       <div className="max-w-5xl mx-auto p-6 space-y-6">
+        <BackToRestaurantsButton />
+
         {isOwner && (
           <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-4 shadow-lg">
             <div className="flex items-center gap-3">

@@ -6,6 +6,7 @@ import Providers from "./providers";
 import { UserMenu } from "@/components/UserMenu";
 import { OwnerRestaurantButton } from "@/components/OwnerRestaurantButton";
 import { ClientHomeButton } from "@/components/ClientHomeButton";
+import { GuestHomeButton } from "@/components/GuestHomeButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Providers>
           {children}
+          <GuestHomeButton />
           <OwnerRestaurantButton />
           <ClientHomeButton />
           <UserMenu />
