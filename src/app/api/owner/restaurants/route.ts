@@ -83,11 +83,16 @@ export const POST = withOwner(async (req, session) => {
     }))
   );
 
+  // Generate random seed for restaurant image
+  const randomSeed = Math.floor(Math.random() * 1000);
+  const imageUrl = `https://picsum.photos/seed/${slug}-${randomSeed}/1200/600`;
+
   const created = await prisma.restaurant.create({
     data: {
       name,
       slug,
       description,
+      imageUrl,
       slotDurationMinutes,
       ownerId: owner.id,
       tables: tableRecords.length > 0 ? { create: tableRecords } : undefined,

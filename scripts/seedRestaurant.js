@@ -33,6 +33,9 @@ async function main() {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
+  // Generate random seed for consistent but random image
+  const randomSeed = Math.floor(Math.random() * 1000);
+
   // Create restaurant with full setup
   const restaurant = await prisma.restaurant.create({
     data: {
@@ -40,7 +43,7 @@ async function main() {
       name: restaurantName,
       slug: slug,
       description: "Restauracja z pysznym jedzeniem i przyjemną atmosferą.",
-      imageUrl: `https://picsum.photos/seed/${slug}/1200/600`,
+      imageUrl: `https://picsum.photos/seed/${slug}-${randomSeed}/1200/600`,
       address: "ul. Przykładowa 10, Warszawa",
       phone: "+48 123 456 789",
       slotDurationMinutes: 90,

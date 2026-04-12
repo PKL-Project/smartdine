@@ -213,7 +213,10 @@ export default function ReserveForm({
                 <p className="text-sm text-orange-700">Aby zarezerwować stolik, musisz najpierw się zalogować.</p>
               </div>
               <Button
-                onClick={() => signIn()}
+                onClick={() => {
+                  const callbackUrl = encodeURIComponent(window.location.href);
+                  window.location.href = `/login?callbackUrl=${callbackUrl}`;
+                }}
                 className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow"
               >
                 Zaloguj się

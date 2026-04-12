@@ -13,6 +13,7 @@ const restaurants = [
     openDays: [1, 2, 3, 4, 5, 6], // Mon-Sat
     openTime: 12 * 60, // 12:00
     closeTime: 22 * 60, // 22:00
+    imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=600&fit=crop&q=80", // Italian restaurant
     categories: [
       {
         name: "Antipasti",
@@ -64,6 +65,7 @@ const restaurants = [
     openDays: [0, 1, 2, 3, 4, 5, 6], // Every day
     openTime: 12 * 60, // 12:00
     closeTime: 21 * 60, // 21:00
+    imageUrl: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=1200&h=600&fit=crop&q=80", // Sushi restaurant
     categories: [
       {
         name: "Maki",
@@ -115,6 +117,7 @@ const restaurants = [
     openDays: [1, 2, 3, 4, 5, 6, 0], // Every day
     openTime: 11 * 60, // 11:00
     closeTime: 22 * 60, // 22:00
+    imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=600&fit=crop&q=80", // Burger restaurant
     categories: [
       {
         name: "Burgery Classic",
@@ -166,6 +169,7 @@ const restaurants = [
     openDays: [1, 2, 3, 4, 5], // Mon-Fri only
     openTime: 8 * 60, // 8:00 (breakfast)
     closeTime: 19 * 60, // 19:00
+    imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200&h=600&fit=crop&q=80", // Healthy/vegan food
     categories: [
       {
         name: "Śniadania",
@@ -216,6 +220,7 @@ const restaurants = [
     openDays: [2, 3, 4, 5, 6], // Tue-Sat only
     openTime: 16 * 60, // 16:00 (late afternoon/dinner)
     closeTime: 22 * 60, // 22:00
+    imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&h=600&fit=crop&q=80", // Steakhouse
     categories: [
       {
         name: "Przystawki",
@@ -295,7 +300,7 @@ async function main() {
         name: restaurantData.name,
         slug: slug,
         description: restaurantData.description,
-        imageUrl: `https://picsum.photos/seed/${slug}/1200/600`,
+        imageUrl: restaurantData.imageUrl,
         address: restaurantData.address,
         phone: restaurantData.phone,
         slotDurationMinutes: restaurantData.slotDurationMinutes,
