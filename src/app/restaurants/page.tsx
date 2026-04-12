@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { usePolling } from "@/hooks/usePolling";
 import { RefreshIndicator } from "@/components/RefreshIndicator";
+import { Home } from "lucide-react";
 
 interface Restaurant {
   id: string;
@@ -15,6 +18,8 @@ interface Restaurant {
 }
 
 export default function RestaurantsPage() {
+  const { status } = useSession();
+  const router = useRouter();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -101,6 +106,18 @@ export default function RestaurantsPage() {
           </div>
         )}
       </div>
+
+      {/* Floating Home Button for logged-out users */}
+      {status === "unauthenticated" && (
+        <button
+          onClick={() => router.push("/")}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 flex items-center justify-center z-50"
+          aria-label="Strona główna"
+          title="Strona główna"
+        >
+          <Home className="w-6 h-6" />
+        </button>
+      )}
     </main>
   );
 }
