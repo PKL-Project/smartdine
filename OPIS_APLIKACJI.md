@@ -13,7 +13,8 @@
 9. [Zarządzanie slotami czasowymi](#zarządzanie-slotami-czasowymi)
 10. [System pre-orderów](#system-pre-orderów)
 11. [Komponenty UI](#komponenty-ui)
-12. [Przepływy użytkownika](#przepływy-użytkownika)
+12. [Flow użytkownika](#flow-użytkownika)
+13. [Skrypty seedowania](#skrypty-seedowania)
 
 ---
 
@@ -25,6 +26,7 @@ System rezerwacji restauracji to aplikacja webowa umożliwiająca:
 - **Klientom** przeglądanie restauracji, dokonywanie rezerwacji, zamawianie z góry dań i zarządzanie swoimi rezerwacjami
 
 Główne funkcjonalności:
+
 - Aktualizacje w czasie rzeczywistym poprzez polling
 - Zapobieganie podwójnym rezerwacjom
 - Zarządzanie slotami czasowymi
@@ -34,20 +36,20 @@ Główne funkcjonalności:
 
 ## Stos technologiczny
 
-| Warstwa | Technologia | Wersja |
-|---------|-------------|--------|
-| **Framework** | Next.js (App Router, Turbopack) | 15.4.6 |
-| **Język** | TypeScript (strict mode) | 5.x |
-| **UI** | React (Server + Client Components) | 19.1.0 |
-| **Baza danych** | SQLite | - |
-| **ORM** | Prisma | 6.14.0 |
-| **Autoryzacja** | NextAuth.js (Auth.js) - magic links | 4.24.11 |
-| **Email** | Resend (mock w dev) | - |
-| **Stylowanie** | Tailwind CSS | 4.x |
-| **Komponenty** | shadcn/ui | - |
-| **Powiadomienia** | Sonner (toasty) | - |
-| **Ikony** | Lucide React | - |
-| **Walidacja** | Zod | 4.0.17 |
+| Warstwa           | Technologia                         | Wersja  |
+| ----------------- | ----------------------------------- | ------- |
+| **Framework**     | Next.js (App Router, Turbopack)     | 15.4.6  |
+| **Język**         | TypeScript (strict mode)            | 5.x     |
+| **UI**            | React (Server + Client Components)  | 19.1.0  |
+| **Baza danych**   | SQLite                              | -       |
+| **ORM**           | Prisma                              | 6.14.0  |
+| **Autoryzacja**   | NextAuth.js (Auth.js) - magic links | 4.24.11 |
+| **Email**         | Resend (mock w dev)                 | -       |
+| **Stylowanie**    | Tailwind CSS                        | 4.x     |
+| **Komponenty**    | shadcn/ui                           | -       |
+| **Powiadomienia** | Sonner (toasty)                     | -       |
+| **Ikony**         | Lucide React                        | -       |
+| **Walidacja**     | Zod                                 | 4.0.17  |
 
 ---
 
@@ -62,23 +64,90 @@ Aplikacja korzysta z **App Router** wprowadzonego w Next.js 13+. Główne cechy:
 - **Server Components** - domyślnie wszystkie komponenty są renderowane na serwerze
 - **Client Components** - oznaczane dyrektywą `"use client"` na górze pliku
 
+### System routingu Next.js
+
+W App Router struktura katalogów bezpośrednio odpowiada ścieżkom URL:
+
+```
+src/app/
+├── page.tsx                    → /
+├── login/page.tsx              → /login
+├── restaurants/
+│   ├── page.tsx                → /restaurants
+│   └── [slug]/
+│       └── page.tsx            → /restaurants/:slug (np. /restaurants/bella-italia)
+├── owner/
+│   ├── page.tsx                → /owner
+│   └── [slug]/
+│       ├── edit/page.tsx       → /owner/:slug/edit
+│       ├── menu/page.tsx       → /owner/:slug/menu
+│       └── reservations/page.tsx → /owner/:slug/reservations
+└── api/
+    └── restaurants/
+        └── [slug]/route.ts     → /api/restaurants/:slug
+```
+
+**Specjalne pliki w App Router:**
+
+| Plik         | Funkcja                                                   |
+| ------------ | --------------------------------------------------------- |
+| `page.tsx`   | Definiuje UI strony (wymagany, aby ścieżka była dostępna) |
+| `layout.tsx` | Współdzielony layout dla strony i jej podstron            |
+| `route.ts`   | API endpoint (GET, POST, PATCH, DELETE)                   |
+
+**Segmenty dynamiczne:**
+
+- `[slug]` - pojedynczy parametr dynamiczny, dostępny jako `params.slug`
+- `[...slug]` - catch-all, dopasowuje wiele segmentów (np. `/a/b/c`)
+
+```typescript
+// src/app/restaurants/[slug]/page.tsx
+export default async function RestaurantPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const restaurant = await prisma.restaurant.findUnique({
+    where: { slug },
+  });
+  // ...
+}
+```
+
+**API Routes:**
+
+Pliki `route.ts` eksportują funkcje HTTP:
+
+```typescript
+// src/app/api/restaurants/[slug]/route.ts
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const restaurant = await prisma.restaurant.findUnique({ where: { slug } });
+  return NextResponse.json(restaurant);
+}
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  // aktualizacja restauracji
+}
+```
+
 ### Server Components vs Client Components
 
 **Server Components** (renderowane na serwerze):
+
 - Pobieranie danych z bazy (Prisma)
 - Sprawdzanie sesji/autoryzacji
 - Layouty i strony statyczne
 
 ```typescript
 // Przykład: src/app/owner/page.tsx
-export default async function OwnerDashboard() {
-  const session = await auth();
-  const restaurant = await prisma.restaurant.findFirst({...});
-  return <div>...</div>;
+export default async function OwnerHome() {
+  const me = await prisma.user.findUnique({...});
+  // ...
+  const restaurant = me.restaurants[0];
+  return <div>{restaurant.name}</div>;
 }
 ```
 
 **Client Components** (renderowane w przeglądarce):
+
 - Interaktywne formularze
 - Zarządzanie stanem (useState, useEffect)
 - Obsługa zdarzeń użytkownika
@@ -97,6 +166,7 @@ export function ReserveForm() {
 ### React 19
 
 Aplikacja wykorzystuje React 19 z następującymi funkcjami:
+
 - **Concurrent rendering** - płynniejsze aktualizacje UI
 - **Server Components** - natywne wsparcie dla komponentów serwerowych
 - **Suspense** - obsługa ładowania asynchronicznego
@@ -107,13 +177,12 @@ Stylowanie oparte na klasach utility:
 
 ```tsx
 <div className="bg-gradient-to-br from-orange-50 to-amber-50 min-h-screen">
-  <button className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
-    Zarezerwuj
-  </button>
+  <button className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">Zarezerwuj</button>
 </div>
 ```
 
 Konfiguracja w `tailwind.config.ts` definiuje:
+
 - Niestandardowe animacje
 - Rozszerzenia kolorów
 - Ścieżki do plików źródłowych
@@ -213,6 +282,7 @@ generator client {
 ### Modele danych
 
 #### User (Użytkownik)
+
 ```prisma
 model User {
   id            String    @id @default(cuid())
@@ -234,6 +304,7 @@ enum UserRole {
 ```
 
 #### Restaurant (Restauracja)
+
 ```prisma
 model Restaurant {
   id           String   @id @default(cuid())
@@ -251,6 +322,7 @@ model Restaurant {
 ```
 
 #### Table (Stolik)
+
 ```prisma
 model Table {
   id           String   @id @default(cuid())
@@ -263,6 +335,7 @@ model Table {
 ```
 
 #### Reservation (Rezerwacja)
+
 ```prisma
 model Reservation {
   id           String   @id @default(cuid())
@@ -292,6 +365,7 @@ enum ReservationStatus {
 ```
 
 #### TimeSlot (Slot czasowy)
+
 ```prisma
 model TimeSlot {
   id              String   @id @default(cuid())
@@ -303,6 +377,7 @@ model TimeSlot {
 ```
 
 #### Menu (Kategorie i pozycje)
+
 ```prisma
 model MenuCategory {
   id           String   @id @default(cuid())
@@ -349,35 +424,365 @@ Reservation (n) ──has many──> (n) PreorderItems
 
 ### NextAuth.js (Auth.js)
 
-Konfiguracja w `src/lib/auth.ts`:
+NextAuth.js to biblioteka do uwierzytelniania w Next.js. W tej aplikacji używamy wersji 4.x z następującymi elementami:
+
+**Główne pliki:**
+
+| Plik                                | Funkcja                           |
+| ----------------------------------- | --------------------------------- |
+| `src/lib/auth.ts`                   | Konfiguracja NextAuth             |
+| `src/app/api/auth/[...nextauth]/route.ts` | Handler API (catch-all route) |
+| `src/app/login/page.tsx`            | Strona logowania                  |
+| `src/app/auth/verify-request/page.tsx` | Strona po wysłaniu linku       |
+| `src/types/next-auth.d.ts`          | Rozszerzenia typów TypeScript     |
+
+**Konfiguracja w `src/lib/auth.ts`:**
 
 ```typescript
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthOptions = {
+  // Adapter Prisma - przechowuje użytkowników i sesje w bazie
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 dni
+
+  // Strategia sesji - JWT przechowywane w cookie
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 dni
+  },
+
+  // Provider - tylko Email (magic links)
   providers: [
     EmailProvider({
-      server: process.env.EMAIL_SERVER,
-      from: process.env.EMAIL_FROM,
+      async sendVerificationRequest({ identifier, url }) {
+        // Wysyłka emaila z linkiem
+      },
     }),
   ],
+
+  // Callbacki - synchronizacja danych między bazą a tokenem
   callbacks: {
-    jwt({ token, user }) {
-      // Synchronizacja roli z bazy do tokenu
-    },
-    session({ session, token }) {
-      // Dodanie ID i roli do sesji
-    },
+    jwt({ token, user }) { ... },
+    session({ session, token }) { ... },
   },
-});
+
+  // Niestandardowe strony
+  pages: {
+    signIn: "/login",
+    verifyRequest: "/auth/verify-request",
+  },
+};
 ```
 
-### Magic Links
+**API Route Handler:**
 
-1. Użytkownik wpisuje email na stronie `/login`
-2. System wysyła email z linkiem weryfikacyjnym
-3. Kliknięcie linku loguje użytkownika
-4. W trybie development link jest logowany do konsoli
+```typescript
+// src/app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/auth";
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
+```
+
+Catch-all route `[...nextauth]` obsługuje wszystkie endpointy NextAuth:
+- `GET /api/auth/signin` - strona logowania
+- `POST /api/auth/signin/email` - wysłanie magic link
+- `GET /api/auth/callback/email` - weryfikacja tokenu z linku
+- `GET /api/auth/session` - pobranie sesji
+- `POST /api/auth/signout` - wylogowanie
+
+### Magic Links - szczegółowy flow
+
+Magic links to metoda uwierzytelniania bez hasła. Użytkownik loguje się klikając jednorazowy link wysłany na email.
+
+**Diagram flow:**
+
+```
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   /login    │      │  NextAuth   │      │    Email    │      │   Callback  │
+│   (form)    │      │    API      │      │   (Resend)  │      │    URL      │
+└─────┬───────┘      └──────┬──────┘      └──────┬──────┘      └──────┬──────┘
+      │                     │                    │                    │
+      │ 1. Submit email     │                    │                    │
+      ├────────────────────>│                    │                    │
+      │                     │                    │                    │
+      │                     │ 2. Generuj token   │                    │
+      │                     │    (VerificationToken)                  │
+      │                     │                    │                    │
+      │                     │ 3. Wyślij email    │                    │
+      │                     ├───────────────────>│                    │
+      │                     │                    │                    │
+      │ 4. Redirect         │                    │                    │
+      │<────────────────────│                    │                    │
+      │ /auth/verify-request│                    │                    │
+      │                     │                    │                    │
+      │                     │                    │ 5. Użytkownik      │
+      │                     │                    │    klika link      │
+      │                     │                    ├───────────────────>│
+      │                     │                    │                    │
+      │                     │ 6. Weryfikuj token │                    │
+      │                     │<───────────────────┼────────────────────│
+      │                     │                    │                    │
+      │                     │ 7. Utwórz sesję JWT│                    │
+      │                     │                    │                    │
+      │ 8. Redirect do app  │                    │                    │
+      │<────────────────────┼────────────────────┼────────────────────│
+      │ (z cookie sesji)    │                    │                    │
+```
+
+**Kroki szczegółowo:**
+
+1. **Użytkownik wpisuje email** (`/login`)
+   ```typescript
+   // src/app/login/page.tsx
+   await signIn("email", { email, callbackUrl });
+   ```
+
+2. **NextAuth generuje token weryfikacyjny**
+   - Zapisuje `VerificationToken` w bazie (Prisma)
+   - Token ma krótki czas ważności
+
+3. **Wysyłka emaila**
+   ```typescript
+   // src/lib/auth.ts
+   EmailProvider({
+     async sendVerificationRequest({ identifier, url }) {
+       await resend.emails.send({
+         from: process.env.EMAIL_FROM!,
+         to: identifier,
+         subject: "Zaloguj się do SmartDine",
+         html: `<a href="${url}">Zaloguj się</a>`,
+         text: `Zaloguj się do SmartDine: ${url}`,
+       });
+     },
+   }),
+   ```
+
+4. **Przekierowanie na stronę potwierdzenia** (`/auth/verify-request`)
+
+5. **Użytkownik klika link w emailu**
+   - URL zawiera token: `/api/auth/callback/email?token=xxx&email=yyy`
+
+6. **NextAuth weryfikuje token**
+   - Sprawdza czy token istnieje i nie wygasł
+   - Usuwa token z bazy (jednorazowy)
+
+7. **Utworzenie sesji JWT**
+   - Generuje JWT z danymi użytkownika
+   - Zapisuje w httpOnly cookie
+
+8. **Przekierowanie do aplikacji**
+   - Użytkownik trafia na `callbackUrl` (domyślnie `/`)
+
+**Tryb deweloperski:**
+
+W development emaile nie są wysyłane - link jest logowany do konsoli:
+
+```typescript
+// src/lib/auth.ts
+const resend = isDevelopment
+  ? {
+      emails: {
+        send: async (params) => {
+          console.log("\n=== 📧 WIADOMOŚĆ EMAIL (Tryb deweloperski) ===");
+          console.log(`Do: ${params.to}`);
+          console.log(`🔗 Link logowania: ${magicLink}`);
+          console.log("============================================\n");
+          return { id: "mock-email-id" };
+        },
+      },
+    }
+  : new Resend(process.env.RESEND_API_KEY!);
+```
+
+**Produkcja:**
+
+W produkcji używany jest Resend jako provider emailowy. Wymagane zmienne środowiskowe:
+- `RESEND_API_KEY` - klucz API Resend
+- `EMAIL_FROM` - adres nadawcy (np. `noreply@smartdine.pl`)
+
+### Sesje i JWT
+
+Aplikacja używa strategii **JWT** zamiast sesji bazodanowych:
+
+```typescript
+session: {
+  strategy: "jwt",
+  maxAge: 30 * 24 * 60 * 60, // 30 dni
+},
+```
+
+**Callback JWT** - synchronizuje dane między bazą a tokenem:
+
+```typescript
+callbacks: {
+  async jwt({ token, user, trigger, session }) {
+    // Przy logowaniu - pobierz dane z bazy
+    if (user?.id) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { id: true, name: true, role: true },
+      });
+      token.id = dbUser?.id;
+      token.role = dbUser?.role ?? null;
+    }
+
+    // Przy aktualizacji sesji (session.update())
+    if (trigger === "update" && session?.role) {
+      token.role = session.role;
+    }
+
+    // Przy każdym żądaniu - odśwież z bazy
+    if (token.sub) {
+      const dbUser = await prisma.user.findUnique({ where: { id: token.sub } });
+      token.role = dbUser?.role ?? null;
+    }
+
+    return token;
+  },
+}
+```
+
+**Callback Session** - mapuje token na obiekt sesji:
+
+```typescript
+async session({ session, token }) {
+  session.user.id = token.sub;
+  session.user.name = token.name;
+  session.user.role = token.role;
+  return session;
+}
+```
+
+### Rozszerzenia typów TypeScript
+
+Aby dodać własne pola (np. `role`) do sesji, rozszerzamy typy NextAuth:
+
+```typescript
+// src/types/next-auth.d.ts
+import { UserRole } from "@/types/roles";
+
+declare module "next-auth" {
+  interface User {
+    role?: UserRole | null;
+  }
+  interface Session {
+    user: {
+      id?: string;
+      email?: string | null;
+      name?: string | null;
+      role?: UserRole | null;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string;
+    role?: UserRole | null;
+  }
+}
+```
+
+### SessionProvider
+
+`SessionProvider` to komponent React Context z NextAuth, który udostępnia dane sesji wszystkim komponentom klienckim w aplikacji.
+
+**Dlaczego jest potrzebny?**
+
+- Server Components i API Routes używają `getServerSession(authOptions)` lub middleware `withAuth`
+- Client Components (`"use client"`) nie mają dostępu do funkcji serwerowych
+- `SessionProvider` przekazuje sesję przez React Context do komponentów klienckich
+
+**Implementacja w aplikacji:**
+
+```typescript
+// src/app/providers.tsx
+"use client";
+
+import { SessionProvider } from "next-auth/react";
+import { ReactNode } from "react";
+import { Toaster } from "sonner";
+
+export default function Providers({ children }: { children: ReactNode }) {
+  return (
+    <SessionProvider>
+      {children}
+      <Toaster richColors position="bottom-right" />
+    </SessionProvider>
+  );
+}
+```
+
+**Użycie w Root Layout:**
+
+```typescript
+// src/app/layout.tsx
+import Providers from "./providers";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>
+          {children}
+          <UserMenu />
+        </Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+**Użycie w komponentach klienckich:**
+
+```typescript
+"use client";
+
+import { useSession, signIn, signOut } from "next-auth/react";
+
+export function UserMenu() {
+  const { data: session, status, update } = useSession();
+
+  if (status === "loading") {
+    return <div>Ładowanie...</div>;
+  }
+
+  if (!session) {
+    return <button onClick={() => signIn()}>Zaloguj się</button>;
+  }
+
+  return (
+    <div>
+      <span>Witaj, {session.user.name}</span>
+      <span>Rola: {session.user.role}</span>
+      <button onClick={() => signOut()}>Wyloguj</button>
+    </div>
+  );
+}
+```
+
+**Hook `useSession` - zwracane wartości:**
+
+| Pole     | Typ                                      | Opis                              |
+| -------- | ---------------------------------------- | --------------------------------- |
+| `data`   | `Session \| null`                        | Obiekt sesji lub null             |
+| `status` | `"loading" \| "authenticated" \| "unauthenticated"` | Stan sesji       |
+| `update` | `(data?) => Promise<Session \| null>`    | Funkcja do aktualizacji sesji     |
+
+**Aktualizacja sesji (np. po zmianie roli):**
+
+```typescript
+// Po ustawieniu roli w onboardingu
+await fetch("/api/me/role", {
+  method: "POST",
+  body: JSON.stringify({ role: "OWNER" }),
+});
+
+// Aktualizuj sesję w SessionProvider
+await update({ role: "OWNER" });
+
+// Teraz session.user.role === "OWNER" we wszystkich komponentach
+```
 
 ### Role użytkowników
 
@@ -400,8 +805,7 @@ export default auth((req) => {
   const { auth: session, nextUrl } = req;
 
   // Chronione ścieżki
-  if (nextUrl.pathname.startsWith("/owner") ||
-      nextUrl.pathname.startsWith("/onboarding")) {
+  if (nextUrl.pathname.startsWith("/owner") || nextUrl.pathname.startsWith("/onboarding")) {
     if (!session) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
@@ -441,37 +845,41 @@ export function withReservationAccess(handler) {...}
 ### Struktura endpointów
 
 #### Publiczne (bez autoryzacji)
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/restaurants` | Lista restauracji |
-| GET | `/api/restaurants/[slug]/available-slots` | Dostępne sloty |
+
+| Metoda | Endpoint                                  | Opis              |
+| ------ | ----------------------------------------- | ----------------- |
+| GET    | `/api/restaurants`                        | Lista restauracji |
+| GET    | `/api/restaurants/[slug]/available-slots` | Dostępne sloty    |
 
 #### Użytkownik (wymaga logowania)
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| PATCH | `/api/me/profile` | Aktualizacja profilu |
-| GET | `/api/me/reservations` | Rezerwacje użytkownika |
-| POST | `/api/me/role` | Ustawienie roli |
-| GET | `/api/me/restaurant` | Restauracja właściciela |
+
+| Metoda | Endpoint               | Opis                    |
+| ------ | ---------------------- | ----------------------- |
+| PATCH  | `/api/me/profile`      | Aktualizacja profilu    |
+| GET    | `/api/me/reservations` | Rezerwacje użytkownika  |
+| POST   | `/api/me/role`         | Ustawienie roli         |
+| GET    | `/api/me/restaurant`   | Restauracja właściciela |
 
 #### Rezerwacje
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| POST | `/api/reservations` | Tworzenie rezerwacji |
-| GET | `/api/reservations/[id]` | Szczegóły rezerwacji |
-| PATCH | `/api/reservations/[id]` | Edycja rezerwacji |
-| POST | `/api/reservations/[id]/status` | Zmiana statusu (OWNER) |
-| POST | `/api/reservations/[id]/cancel` | Anulowanie |
+
+| Metoda | Endpoint                        | Opis                   |
+| ------ | ------------------------------- | ---------------------- |
+| POST   | `/api/reservations`             | Tworzenie rezerwacji   |
+| GET    | `/api/reservations/[id]`        | Szczegóły rezerwacji   |
+| PATCH  | `/api/reservations/[id]`        | Edycja rezerwacji      |
+| POST   | `/api/reservations/[id]/status` | Zmiana statusu (OWNER) |
+| POST   | `/api/reservations/[id]/cancel` | Anulowanie             |
 
 #### Właściciel
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| POST | `/api/owner/restaurants` | Tworzenie restauracji |
-| GET/PATCH | `/api/owner/restaurants/[slug]` | Zarządzanie restauracją |
-| GET | `/api/owner/[slug]/reservations` | Rezerwacje restauracji |
-| GET | `/api/owner/restaurants/[slug]/menu` | Menu restauracji |
-| POST | `/api/owner/restaurants/[slug]/menu/categories` | Nowa kategoria |
-| POST/PATCH | `/api/owner/restaurants/[slug]/menu/items` | Pozycje menu |
+
+| Metoda     | Endpoint                                        | Opis                    |
+| ---------- | ----------------------------------------------- | ----------------------- |
+| POST       | `/api/owner/restaurants`                        | Tworzenie restauracji   |
+| GET/PATCH  | `/api/owner/restaurants/[slug]`                 | Zarządzanie restauracją |
+| GET        | `/api/owner/[slug]/reservations`                | Rezerwacje restauracji  |
+| GET        | `/api/owner/restaurants/[slug]/menu`            | Menu restauracji        |
+| POST       | `/api/owner/restaurants/[slug]/menu/categories` | Nowa kategoria          |
+| POST/PATCH | `/api/owner/restaurants/[slug]/menu/items`      | Pozycje menu            |
 
 ### Obsługa błędów
 
@@ -479,20 +887,15 @@ API zwraca JSON z odpowiednimi kodami HTTP:
 
 ```typescript
 // src/lib/api-middleware.ts
-export const unauthorized = () =>
-  NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-export const forbidden = () =>
-  NextResponse.json({ error: "Forbidden" }, { status: 403 });
+export const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-export const notFound = (message = "Not found") =>
-  NextResponse.json({ error: message }, { status: 404 });
+export const notFound = (message = "Not found") => NextResponse.json({ error: message }, { status: 404 });
 
-export const badRequest = (message: string) =>
-  NextResponse.json({ error: message }, { status: 400 });
+export const badRequest = (message: string) => NextResponse.json({ error: message }, { status: 400 });
 
-export const conflict = (message: string) =>
-  NextResponse.json({ error: message }, { status: 409 });
+export const conflict = (message: string) => NextResponse.json({ error: message }, { status: 409 });
 ```
 
 ---
@@ -505,14 +908,14 @@ export const conflict = (message: string) =>
 
 ```typescript
 interface UsePollingOptions {
-  interval?: number;        // Domyślnie: 30000ms (30 sekund)
-  enabled?: boolean;        // Włączenie/wyłączenie
-  onRefresh?: () => void;   // Callback przy odświeżeniu
+  interval?: number; // Domyślnie: 30000ms (30 sekund)
+  enabled?: boolean; // Włączenie/wyłączenie
+  onRefresh?: () => void; // Callback przy odświeżeniu
 }
 
 interface UsePollingReturn {
-  isRefreshing: boolean;    // Czy trwa odświeżanie
-  lastRefresh: Date;        // Czas ostatniego odświeżenia
+  isRefreshing: boolean; // Czy trwa odświeżanie
+  lastRefresh: Date; // Czas ostatniego odświeżenia
   refresh: () => Promise<void>; // Ręczne odświeżenie
 }
 
@@ -595,6 +998,7 @@ export function RefreshIndicator({ isRefreshing, lastRefresh, onRefresh }) {
 ### Struktura slotów
 
 Każdy slot czasowy definiuje:
+
 - `startMinutes` - minuty od godziny otwarcia restauracji
 - `durationMinutes` - czas trwania slotu (np. 90 minut)
 
@@ -626,9 +1030,7 @@ export async function GET(request, { params }) {
 
   // 2. Znajdź godziny otwarcia dla dnia tygodnia
   const dayOfWeek = new Date(date).getDay();
-  const openingHour = restaurant.openingHours.find(
-    (h) => h.dayOfWeek === dayOfWeek
-  );
+  const openingHour = restaurant.openingHours.find((h) => h.dayOfWeek === dayOfWeek);
 
   // 3. Dla każdego slotu sprawdź dostępność
   const availableSlots = restaurant.timeSlots.map((slot) => {
@@ -637,20 +1039,14 @@ export async function GET(request, { params }) {
     const slotEnd = addMinutes(slotStart, slot.durationMinutes);
 
     // Znajdź stoliki z wystarczającą pojemnością
-    const suitableTables = restaurant.tables.filter(
-      (t) => t.capacity >= partySize
-    );
+    const suitableTables = restaurant.tables.filter((t) => t.capacity >= partySize);
 
     // Sprawdź czy którykolwiek stolik jest wolny
     const hasAvailableTable = suitableTables.some((table) => {
-      const tableReservations = restaurant.reservations.filter(
-        (r) => r.tableId === table.id
-      );
+      const tableReservations = restaurant.reservations.filter((r) => r.tableId === table.id);
 
       // Sprawdź konflikt czasowy
-      return !tableReservations.some((r) =>
-        hasOverlap(slotStart, slotEnd, r.startTime, r.endTime)
-      );
+      return !tableReservations.some((r) => hasOverlap(slotStart, slotEnd, r.startTime, r.endTime));
     });
 
     return {
@@ -690,9 +1086,7 @@ export async function POST(request) {
       where: {
         tableId,
         status: "CONFIRMED",
-        OR: [
-          { startTime: { lt: endTime }, endTime: { gt: startTime } },
-        ],
+        OR: [{ startTime: { lt: endTime }, endTime: { gt: startTime } }],
       },
     });
     if (conflicts.length > 0) {
@@ -702,9 +1096,7 @@ export async function POST(request) {
 
   // 2. Jeśli nie podano stolika - znajdź wolny
   if (!tableId) {
-    const availableTable = await findAvailableTable(
-      restaurantId, startTime, endTime, partySize
-    );
+    const availableTable = await findAvailableTable(restaurantId, startTime, endTime, partySize);
     if (!availableTable) {
       return conflict("Brak wolnych stolików");
     }
@@ -741,8 +1133,8 @@ const canSelectSlot = (slotId: string) => {
   if (selectedSlots.length === 0) return true;
   if (selectedSlots.length >= 2) return false;
 
-  const lastSlot = slots.find(s => s.id === selectedSlots[0]);
-  const newSlot = slots.find(s => s.id === slotId);
+  const lastSlot = slots.find((s) => s.id === selectedSlots[0]);
+  const newSlot = slots.find((s) => s.id === slotId);
 
   // Sprawdź czy sloty są kolejne
   return areConsecutive(lastSlot, newSlot);
@@ -753,7 +1145,7 @@ const canSelectSlot = (slotId: string) => {
 
 ## System pre-orderów
 
-### Przepływ zamawiania z góry
+### Flow zamawiania z góry
 
 1. **Formularz rezerwacji** wyświetla menu restauracji
 2. Klient wybiera ilości dla pozycji menu
@@ -795,8 +1187,8 @@ export function money(cents: number): string {
 
 // Całkowita wartość pre-orderu
 const total = preorderItems.reduce((sum, item) => {
-  const menuItem = menu.find(m => m.id === item.menuItemId);
-  return sum + (menuItem.priceCents * item.quantity);
+  const menuItem = menu.find((m) => m.id === item.menuItemId);
+  return sum + menuItem.priceCents * item.quantity;
 }, 0);
 ```
 
@@ -858,18 +1250,19 @@ export function Button({ variant, size, ...props }) {
 
 ### Dostępne komponenty shadcn/ui
 
-| Komponent | Plik | Opis |
-|-----------|------|------|
-| Button | `button.tsx` | Przycisk z wariantami |
-| Card | `card.tsx` | Kontener z nagłówkiem/stopką |
-| Dialog | `dialog.tsx` | Modal dialogowy |
-| Input | `input.tsx` | Pole tekstowe |
-| Label | `label.tsx` | Etykieta formularza |
-| Tabs | `tabs.tsx` | Zakładki |
+| Komponent | Plik         | Opis                         |
+| --------- | ------------ | ---------------------------- |
+| Button    | `button.tsx` | Przycisk z wariantami        |
+| Card      | `card.tsx`   | Kontener z nagłówkiem/stopką |
+| Dialog    | `dialog.tsx` | Modal dialogowy              |
+| Input     | `input.tsx`  | Pole tekstowe                |
+| Label     | `label.tsx`  | Etykieta formularza          |
+| Tabs      | `tabs.tsx`   | Zakładki                     |
 
 ### Niestandardowe komponenty
 
 #### ReservationStatusBadge
+
 ```typescript
 // Wyświetla status rezerwacji z odpowiednim kolorem
 <ReservationStatusBadge status="CONFIRMED" />
@@ -880,6 +1273,7 @@ export function Button({ variant, size, ...props }) {
 ```
 
 #### RefreshIndicator
+
 ```typescript
 // Wskaźnik pollingu z czasem ostatniego odświeżenia
 <RefreshIndicator
@@ -891,9 +1285,9 @@ export function Button({ variant, size, ...props }) {
 
 ---
 
-## Przepływy użytkownika
+## Flow użytkownika
 
-### Przepływ klienta (CLIENT)
+### Flow klienta (CLIENT)
 
 ```
 /login
@@ -911,7 +1305,7 @@ export function Button({ variant, size, ...props }) {
                                   └──> /reservations/[id]/edit (edycja)
 ```
 
-### Przepływ właściciela (OWNER)
+### Flow właściciela (OWNER)
 
 ```
 /login
@@ -955,13 +1349,13 @@ CONFIRMED ──klient edytuje──> EDITED
 // src/lib/format.ts
 
 // Formatowanie ceny
-money(1900) // "19,00 zł"
+money(1900); // "19,00 zł"
 
 // Formatowanie daty
-formatDate(new Date()) // "4 maja 2026"
+formatDate(new Date()); // "4 maja 2026"
 
 // Formatowanie godziny
-formatTime(new Date()) // "18:30"
+formatTime(new Date()); // "18:30"
 ```
 
 ### Utils
@@ -977,7 +1371,149 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Użycie:
-cn("px-4 py-2", isActive && "bg-blue-500", className)
+cn("px-4 py-2", isActive && "bg-blue-500", className);
+```
+
+---
+
+## Skrypty seedowania
+
+Katalog `scripts/` zawiera skrypty do zarządzania danymi testowymi w bazie danych.
+
+### Dostępne skrypty
+
+| Skrypt                       | Komenda npm                               | Opis                               |
+| ---------------------------- | ----------------------------------------- | ---------------------------------- |
+| `clearDb.js`                 | `npm run clear:db`                        | Usuwa wszystkie dane z bazy        |
+| `createClient.js`            | `npm run create:client <email>`           | Tworzy konto klienta               |
+| `seedRestaurant.js`          | `npm run seed:restaurant <nazwa> <email>` | Tworzy pojedynczą restaurację      |
+| `seedMultipleRestaurants.js` | `npm run seed:restaurants`                | Tworzy 5 przykładowych restauracji |
+
+### clearDb.js
+
+Skrypt do czyszczenia całej bazy danych. Usuwa wszystkie rekordy z tabel w odpowiedniej kolejności (ze względu na klucze obce):
+
+```javascript
+// Kolejność usuwania:
+1. PreorderItem     // Pozycje pre-orderów
+2. Reservation      // Rezerwacje
+3. MenuItem         // Pozycje menu
+4. MenuCategory     // Kategorie menu
+5. OpeningHour      // Godziny otwarcia
+6. Table            // Stoliki
+7. Restaurant       // Restauracje
+8. Session          // Sesje użytkowników
+9. Account          // Konta (OAuth)
+10. VerificationToken // Tokeny weryfikacyjne
+11. User            // Użytkownicy
+```
+
+**Użycie:**
+
+```bash
+npm run clear:db
+```
+
+### createClient.js
+
+Tworzy lub aktualizuje konto użytkownika z rolą CLIENT. Użyteczny do szybkiego tworzenia kont testowych klientów.
+
+**Parametry:**
+
+- `<email>` - adres email klienta (wymagany)
+
+**Co robi skrypt:**
+
+- Używa `upsert` - tworzy nowego użytkownika lub aktualizuje istniejącego
+- Ustawia rolę na `CLIENT`
+- Ustawia `emailVerified` na aktualną datę (pomija weryfikację)
+
+**Użycie:**
+
+```bash
+npm run create:client test@example.com
+```
+
+### seedRestaurant.js
+
+Tworzy pojedynczą restaurację z pełną konfiguracją (stoliki, godziny otwarcia, sloty czasowe, menu).
+
+**Parametry:**
+
+- `<nazwa>` - nazwa restauracji (wymagany)
+- `<email>` - email właściciela (wymagany)
+
+**Co tworzy skrypt:**
+
+- **Właściciel** - użytkownik z rolą OWNER
+- **Restauracja** - z losowym obrazem z Picsum
+- **6 stolików:**
+  - 3x stoliki 2-osobowe
+  - 2x stoliki 4-osobowe
+  - 1x stolik 6-osobowy
+- **Godziny otwarcia:** 10:00-22:00, 7 dni w tygodniu
+- **8 slotów czasowych:** co 90 minut (10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00, 20:30)
+- **Menu z 4 kategoriami:**
+  - Przystawki (Bruschetta, Zupa dnia, Carpaccio)
+  - Dania główne (Kurczak, Risotto, Stek, Łosoś)
+  - Desery (Tiramisu, Lody, Sernik)
+  - Napoje (Kawa, Herbata, Sok, Woda)
+
+**Użycie:**
+
+```bash
+npm run seed:restaurant "Moja Restauracja" owner@example.com
+```
+
+### seedMultipleRestaurants.js
+
+Tworzy 5 przykładowych restauracji z różnymi konfiguracjami, idealne do testowania i demonstracji aplikacji.
+
+**Tworzone restauracje:**
+
+| Restauracja        | Email właściciela  | Dni otwarcia | Godziny     | Slot    |
+| ------------------ | ------------------ | ------------ | ----------- | ------- |
+| Bella Italia       | owner1@example.com | Pon-Sob      | 12:00-22:00 | 90 min  |
+| Sushi Master       | owner2@example.com | Codziennie   | 12:00-21:00 | 60 min  |
+| Burgerholic        | owner3@example.com | Codziennie   | 11:00-22:00 | 60 min  |
+| Green Garden       | owner4@example.com | Pon-Pt       | 8:00-19:00  | 90 min  |
+| Steakhouse Premium | owner5@example.com | Wt-Sob       | 16:00-22:00 | 120 min |
+
+**Charakterystyka restauracji:**
+
+1. **Bella Italia** - włoska (antipasti, pasta, pizza, dolci)
+2. **Sushi Master** - japońska (maki, nigiri, sashimi)
+3. **Burgerholic** - amerykańska (burgery classic i premium)
+4. **Green Garden** - wegańska (śniadania, bowls, dania główne)
+5. **Steakhouse Premium** - ekskluzywna (steki, wina)
+
+Każda restauracja ma:
+
+- Unikalne menu z 3-4 kategoriami i 10-14 pozycjami
+- Zdjęcie z Unsplash dopasowane do typu kuchni
+- 6 stolików (3x 2-os., 2x 4-os., 1x 6-os.)
+- Automatycznie obliczoną liczbę slotów na podstawie godzin otwarcia
+
+**Użycie:**
+
+```bash
+npm run seed:restaurants
+```
+
+### Typowy workflow seedowania
+
+```bash
+# 1. Wyczyść bazę (opcjonalne)
+npm run clear:db
+
+# 2. Utwórz przykładowe restauracje
+npm run seed:restaurants
+
+# 3. Utwórz konto klienta do testów
+npm run create:client client@test.com
+
+# 4. Możesz też dodać własną restaurację
+npm run seed:restaurant "Moja Testowa" myowner@test.com
 ```
 
 ---
