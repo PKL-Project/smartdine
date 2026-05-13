@@ -18,7 +18,10 @@ export const GET = withAuth<{ slug: string }>(async (req, session, { params }) =
       name: true,
       reservations: {
         orderBy: { startTime: "asc" },
-        include: { user: { select: { email: true } } },
+        include: {
+          user: { select: { email: true } },
+          table: { select: { id: true, name: true, capacity: true } },
+        },
         take: 50,
       },
     },

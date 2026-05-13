@@ -23,6 +23,7 @@ type Reservation = {
   startTime: string;
   durationMinutes: number;
   partySize: number;
+  table: { id: string; name: string; capacity: number } | null;
   restaurant: { name: string; slug: string; owner: { email: string; name: string | null } };
   preorderItems: { id: string; quantity: number; menuItem: { name: string; priceCents: number } }[];
 };
@@ -139,7 +140,12 @@ export default function ReservationPage() {
                   {' - '}
                   {new Date(new Date(data.startTime).getTime() + data.durationMinutes * 60000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                 </p>
-                <p className="text-sm text-gray-700">Liczba osób: {data.partySize}</p>
+                <p className="text-sm text-gray-700">
+                  Liczba osób: {data.partySize}
+                  {data.table && (
+                    <span className="text-gray-500"> (stolik {data.table.capacity}-osobowy)</span>
+                  )}
+                </p>
                 {data.preorderItems?.length ? (
                   <div className="space-y-2">
                     <div className="text-sm font-semibold text-gray-900">Przed-zamówienie:</div>

@@ -14,6 +14,13 @@ export const GET = withAuth(async (req, session) => {
       durationMinutes: true,
       partySize: true,
       status: true,
+      table: {
+        select: {
+          id: true,
+          name: true,
+          capacity: true,
+        },
+      },
       restaurant: {
         select: {
           name: true,

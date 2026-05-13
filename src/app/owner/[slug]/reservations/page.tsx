@@ -15,6 +15,7 @@ interface Reservation {
   durationMinutes: number;
   partySize: number;
   status: string;
+  table: { id: string; name: string; capacity: number } | null;
   user: {
     email: string;
   };
@@ -138,6 +139,9 @@ export default function OwnerReservations() {
                   {new Date(new Date(res.startTime).getTime() + res.durationMinutes * 60000).toLocaleTimeString("pl-PL", { hour: '2-digit', minute: '2-digit' })}
                 </span> •{" "}
                 {res.partySize} os.
+                {res.table && (
+                  <span className="text-gray-500"> (stolik {res.table.capacity}-os.)</span>
+                )}
               </div>
               <div className={isPast ? "text-gray-500" : "text-gray-600"}>Gość: {res.user.email}</div>
               <div className="flex items-center gap-2 mt-1">

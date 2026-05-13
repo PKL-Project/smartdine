@@ -17,6 +17,7 @@ interface Reservation {
   durationMinutes: number;
   partySize: number;
   status: string;
+  table: { id: string; name: string; capacity: number } | null;
   restaurant: {
     name: string;
     slug: string;
@@ -147,6 +148,9 @@ export default function ClientHomePage() {
                     </svg>
                     <span>
                       {res.partySize} {res.partySize === 1 ? "osoba" : res.partySize < 5 ? "osoby" : "osób"}
+                      {res.table && (
+                        <span className="text-gray-500"> (stolik {res.table.capacity}-os.)</span>
+                      )}
                     </span>
                   </div>
                 </div>
