@@ -94,14 +94,14 @@ export default function ReservationPage() {
   };
 
   // Check if reservation can be cancelled (24h before)
-  const canCancel = data ? (() => {
-    const reservationTime = new Date(data.startTime);
-    const now = new Date();
-    const hoursUntilReservation = (reservationTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-    return hoursUntilReservation >= 24 &&
-           data.status !== "CANCELLED" &&
-           data.status !== "CANCELLED_BY_CLIENT";
-  })() : false;
+  const canCancel = data
+    ? (() => {
+        const reservationTime = new Date(data.startTime);
+        const now = new Date();
+        const hoursUntilReservation = (reservationTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+        return hoursUntilReservation >= 24 && data.status !== "CANCELLED" && data.status !== "CANCELLED_BY_CLIENT";
+      })()
+    : false;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
@@ -152,10 +152,7 @@ export default function ReservationPage() {
                         <span>Razem:</span>
                         <span className="text-orange-600">
                           {formatPrice(
-                            data.preorderItems.reduce(
-                              (sum, item) => sum + item.menuItem.priceCents * item.quantity,
-                              0
-                            )
+                            data.preorderItems.reduce((sum, item) => sum + item.menuItem.priceCents * item.quantity, 0),
                           )}
                         </span>
                       </div>
@@ -166,7 +163,8 @@ export default function ReservationPage() {
                 {data.status !== "CANCELLED" && data.status !== "CANCELLED_BY_CLIENT" && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-xs text-blue-800">
-                      <strong>Anulowanie rezerwacji:</strong> Możesz anulować rezerwację do 24 godzin przed zaplanowanym czasem.
+                      <strong>Anulowanie rezerwacji:</strong> Możesz anulować rezerwację do 24 godzin przed zaplanowanym
+                      czasem.
                     </p>
                   </div>
                 )}
@@ -180,14 +178,12 @@ export default function ReservationPage() {
                     Edytuj rezerwację
                   </Button>
                   {canCancel ? (
-                    <Button
-                      onClick={() => setShowCancelDialog(true)}
-                      variant="destructive"
-                    >
+                    <Button onClick={() => setShowCancelDialog(true)} variant="destructive">
                       Anuluj rezerwację
                     </Button>
                   ) : (
-                    data.status !== "CANCELLED" && data.status !== "CANCELLED_BY_CLIENT" && (
+                    data.status !== "CANCELLED" &&
+                    data.status !== "CANCELLED_BY_CLIENT" && (
                       <Button variant="destructive" disabled>
                         Anuluj rezerwację
                       </Button>
@@ -218,18 +214,10 @@ export default function ReservationPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCancelDialog(false)}
-              disabled={cancelling}
-            >
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)} disabled={cancelling}>
               Nie, zachowaj
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleCancelReservation}
-              disabled={cancelling}
-            >
+            <Button variant="destructive" onClick={handleCancelReservation} disabled={cancelling}>
               {cancelling ? "Anuluję..." : "Tak, anuluj"}
             </Button>
           </DialogFooter>
