@@ -75,47 +75,49 @@ export const POST = withOwner<{ id: string }>(async (req, session, { params }) =
           },
         });
 
-        if (restaurant && restaurant.tables.length > 0) {
-          const confirmedReservations = await prisma.reservation.findMany({
-            where: {
-              restaurantId: reservation.restaurantId,
-              status: "CONFIRMED",
-              id: { not: id },
-            },
-            select: { tableId: true, startTime: true, durationMinutes: true },
-          });
-
-          // Find tables that are actually booked (accounting for overlaps)
-          const bookedTableIds = new Set<string>();
-          for (const conf of confirmedReservations) {
-            if (!conf.tableId) continue;
-
-            const confStart = conf.startTime;
-            const confEnd = new Date(confStart.getTime() + conf.durationMinutes * 60000);
-
-            // Check if this reservation overlaps with our time slot
-            if (start < confEnd && end > confStart) {
-              bookedTableIds.add(conf.tableId);
-            }
-          }
-
-          const availableTable = restaurant.tables.find((t) => !bookedTableIds.has(t.id));
-
-          if (!availableTable) {
-            return ErrorResponses.conflict("Brak dostępnych stolików w tym czasie");
-          }
-
-          // Assign the available table
-          await prisma.reservation.update({
-            where: { id },
-            data: {
-              status: status as ReservationStatus,
-              tableId: availableTable.id,
-            },
-          });
-
-          return NextResponse.json({ success: true });
+        if (!restaurant || restaurant.tables.length === 0) {
+          return ErrorResponses.badRequest("Brak dostępnych stolików dla podanej liczby osób");
         }
+
+        const confirmedReservations = await prisma.reservation.findMany({
+          where: {
+            restaurantId: reservation.restaurantId,
+            status: "CONFIRMED",
+            id: { not: id },
+          },
+          select: { tableId: true, startTime: true, durationMinutes: true },
+        });
+
+        // Find tables that are actually booked (accounting for overlaps)
+        const bookedTableIds = new Set<string>();
+        for (const conf of confirmedReservations) {
+          if (!conf.tableId) continue;
+
+          const confStart = conf.startTime;
+          const confEnd = new Date(confStart.getTime() + conf.durationMinutes * 60000);
+
+          // Check if this reservation overlaps with our time slot
+          if (start < confEnd && end > confStart) {
+            bookedTableIds.add(conf.tableId);
+          }
+        }
+
+        const availableTable = restaurant.tables.find((t) => !bookedTableIds.has(t.id));
+
+        if (!availableTable) {
+          return ErrorResponses.conflict("Brak dostępnych stolików w tym czasie");
+        }
+
+        // Assign the available table
+        await prisma.reservation.update({
+          where: { id },
+          data: {
+            status: status as ReservationStatus,
+            tableId: availableTable.id,
+          },
+        });
+
+        return NextResponse.json({ success: true });
       }
     }
   }

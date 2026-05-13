@@ -19,7 +19,9 @@ export async function GET(
   }
 
   const partySize = parseInt(partySizeStr, 10);
-  const requestedDate = new Date(dateStr);
+  // Parse date string as local date (YYYY-MM-DD format)
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const requestedDate = new Date(year, month - 1, day);
   const weekday = requestedDate.getDay(); // 0=Sunday, 6=Saturday
 
   // Fetch restaurant with configuration
@@ -55,7 +57,8 @@ export async function GET(
 
   const openingHour = restaurant.hours[0];
 
-  // Get all confirmed reservations for this date
+  // Get all CONFIRMED reservations for this date
+  // Only confirmed reservations block slots
   const startOfDay = new Date(requestedDate);
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(requestedDate);
@@ -77,18 +80,8 @@ export async function GET(
     },
   });
 
-  // Helper function to check if a table is available for a time range
-  function isTableAvailable(tableId: string, start: Date, end: Date): boolean {
-    return !confirmedReservations.some((reservation) => {
-      if (reservation.tableId !== tableId) return false;
-
-      const resStart = reservation.startTime;
-      const resEnd = new Date(resStart.getTime() + reservation.durationMinutes * 60000);
-
-      // Check for overlap
-      return start < resEnd && end > resStart;
-    });
-  }
+  // Total number of tables that can fit the party size
+  const totalTablesForPartySize = restaurant.tables.length;
 
   // Calculate available slots
   const availableSlots: Array<{
@@ -96,33 +89,43 @@ export async function GET(
     startTime: string;
     endTime: string;
     available: boolean;
+    suggestedTable: { id: string; name: string; capacity: number } | null;
   }> = [];
 
   for (let i = 0; i < restaurant.timeSlots.length; i++) {
     const slot = restaurant.timeSlots[i];
 
     // Calculate actual start time for this slot
-    const slotStartMinutes = openingHour.openMinutes + slot.startMinutes;
     const slotDate = new Date(requestedDate);
-    slotDate.setHours(Math.floor(slotStartMinutes / 60), slotStartMinutes % 60, 0, 0);
+    slotDate.setHours(Math.floor(slot.startMinutes / 60), slot.startMinutes % 60, 0, 0);
 
     const slotEndDate = new Date(slotDate.getTime() + slot.durationMinutes * 60000);
 
-    // Check if any table is available for this slot
-    let hasAvailableTable = false;
-
-    for (const table of restaurant.tables) {
-      if (isTableAvailable(table.id, slotDate, slotEndDate)) {
-        hasAvailableTable = true;
-        break;
+    // Find which tables are booked for this slot
+    const bookedTableIds = new Set<string>();
+    for (const r of confirmedReservations) {
+      if (!r.tableId) continue;
+      const resStart = r.startTime;
+      const resEnd = new Date(resStart.getTime() + r.durationMinutes * 60000);
+      if (slotDate < resEnd && slotEndDate > resStart) {
+        bookedTableIds.add(r.tableId);
       }
     }
+
+    // Find the best available table (smallest that fits party size)
+    // Tables are already ordered by capacity ascending
+    const availableTable = restaurant.tables.find(t => !bookedTableIds.has(t.id));
 
     availableSlots.push({
       slotIndex: i,
       startTime: slotDate.toISOString(),
       endTime: slotEndDate.toISOString(),
-      available: hasAvailableTable,
+      available: !!availableTable,
+      suggestedTable: availableTable ? {
+        id: availableTable.id,
+        name: availableTable.name,
+        capacity: availableTable.capacity,
+      } : null,
     });
   }
 

@@ -21,6 +21,7 @@ type Reservation = {
   id: string;
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "CANCELLED_BY_CLIENT" | "EDITED";
   startTime: string;
+  durationMinutes: number;
   partySize: number;
   restaurant: { name: string; slug: string; owner: { email: string; name: string | null } };
   preorderItems: { id: string; quantity: number; menuItem: { name: string; priceCents: number } }[];
@@ -132,7 +133,12 @@ export default function ReservationPage() {
                   <span className="text-sm text-gray-600">Status:</span>
                   <ReservationStatusBadge status={data.status} />
                 </div>
-                <p className="text-sm text-gray-700">Termin: {new Date(data.startTime).toLocaleString()}</p>
+                <p className="text-sm text-gray-700">
+                  Termin: {new Date(data.startTime).toLocaleDateString('pl-PL')}{' '}
+                  {new Date(data.startTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                  {' - '}
+                  {new Date(new Date(data.startTime).getTime() + data.durationMinutes * 60000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                </p>
                 <p className="text-sm text-gray-700">Liczba osób: {data.partySize}</p>
                 {data.preorderItems?.length ? (
                   <div className="space-y-2">

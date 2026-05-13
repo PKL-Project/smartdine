@@ -14,6 +14,7 @@ import { ReservationStatusBadge } from "@/components/ReservationStatusBadge";
 interface Reservation {
   id: string;
   startTime: string;
+  durationMinutes: number;
   partySize: number;
   status: string;
   restaurant: {
@@ -129,10 +130,10 @@ export default function ClientHomePage() {
                       />
                     </svg>
                     <span>
-                      {new Date(res.startTime).toLocaleString("pl-PL", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
+                      {new Date(res.startTime).toLocaleDateString("pl-PL", { dateStyle: "medium" })}{' '}
+                      {new Date(res.startTime).toLocaleTimeString("pl-PL", { hour: '2-digit', minute: '2-digit' })}
+                      {' - '}
+                      {new Date(new Date(res.startTime).getTime() + res.durationMinutes * 60000).toLocaleTimeString("pl-PL", { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                   <div className={`flex items-center gap-2 text-sm ${isPast ? "text-gray-500" : "text-gray-700"}`}>

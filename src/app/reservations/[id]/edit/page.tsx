@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "next-auth/react";
 import { money } from "@/lib/format";
+import { TimeSlotPicker, TimeSlot } from "@/components/TimeSlotPicker";
 
 type Reservation = {
   id: string;
@@ -36,12 +37,6 @@ type Reservation = {
   }[];
 };
 
-interface TimeSlot {
-  slotIndex: number;
-  startTime: string;
-  endTime: string;
-  available: boolean;
-}
 
 export default function EditReservationPage() {
   const { id } = useParams<{ id: string }>();
@@ -145,53 +140,23 @@ export default function EditReservationPage() {
     fetchSlots();
   }, [selectedDate, party, data]);
 
-  // Handle slot selection (allow up to 2 sequential slots)
-  function handleSlotClick(slotIndex: number) {
-    if (selectedSlots.includes(slotIndex)) {
-      setSelectedSlots(selectedSlots.filter(i => i !== slotIndex));
-    } else if (selectedSlots.length === 0) {
-      setSelectedSlots([slotIndex]);
-    } else if (selectedSlots.length === 1) {
-      const firstSlot = selectedSlots[0];
-      if (slotIndex === firstSlot + 1) {
-        setSelectedSlots([firstSlot, slotIndex]);
-      } else if (slotIndex === firstSlot - 1) {
-        setSelectedSlots([slotIndex, firstSlot]);
-      } else {
-        setSelectedSlots([slotIndex]);
-      }
-    } else {
-      setSelectedSlots([slotIndex]);
-    }
-  }
+  // Calculate which slots are part of the original reservation
+  const originalSlots = useMemo(() => {
+    if (!data || availableSlots.length === 0) return [];
 
-  function isSlotSelected(slotIndex: number): boolean {
-    return selectedSlots.includes(slotIndex);
-  }
-
-  function isOriginalReservationSlot(slotIndex: number): boolean {
-    if (!data || !availableSlots[slotIndex]) return false;
-
-    const slot = availableSlots[slotIndex];
-    const slotTime = new Date(slot.startTime);
     const reservationStart = new Date(data.startTime);
-    const reservationEnd = new Date(reservationStart.getTime() + data.durationMinutes * 60000);
+    const reservationEnd = new Date(
+      reservationStart.getTime() + data.durationMinutes * 60000
+    );
 
-    // Check if this slot is part of the original reservation
-    const slotEnd = new Date(slot.endTime);
-    return slotTime < reservationEnd && slotEnd > reservationStart;
-  }
-
-  function canSelectSlot(slotIndex: number): boolean {
-    const slot = availableSlots[slotIndex];
-    if (!slot || !slot.available) return false;
-
-    if (selectedSlots.length === 0) return true;
-    if (selectedSlots.length === 1) {
-      return true;
-    }
-    return selectedSlots.includes(slotIndex);
-  }
+    return availableSlots
+      .filter((slot) => {
+        const slotTime = new Date(slot.startTime);
+        const slotEnd = new Date(slot.endTime);
+        return slotTime < reservationEnd && slotEnd > reservationStart;
+      })
+      .map((slot) => slot.slotIndex);
+  }, [data, availableSlots]);
 
   function formatTime(isoString: string): string {
     const date = new Date(isoString);
@@ -322,57 +287,21 @@ export default function EditReservationPage() {
                   <p className="text-xs text-gray-500">
                     Możesz wybrać 1 lub 2 kolejne sloty dla dłuższego pobytu
                   </p>
-                  {loadingSlots ? (
-                    <div className="text-sm text-gray-600 p-3 border rounded-lg">
-                      Ładowanie dostępnych slotów...
-                    </div>
-                  ) : availableSlots.length === 0 ? (
-                    <div className="text-sm text-gray-600 p-3 border rounded-lg bg-gray-50">
-                      Brak dostępnych slotów w tym dniu
-                    </div>
-                  ) : (
-                    <div>
-                      {data && (
-                        <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
-                          <strong>Obecna rezerwacja:</strong> {new Date(data.startTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
-                          {' '}({data.durationMinutes} min)
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg">
-                        {availableSlots.map((slot) => {
-                          const isSelected = isSlotSelected(slot.slotIndex);
-                          const isOriginal = isOriginalReservationSlot(slot.slotIndex);
-                          const canSelect = canSelectSlot(slot.slotIndex);
-
-                          return (
-                            <button
-                              key={slot.slotIndex}
-                              type="button"
-                              disabled={!canSelect}
-                              onClick={() => handleSlotClick(slot.slotIndex)}
-                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
-                                isSelected
-                                  ? 'bg-orange-600 text-white ring-2 ring-orange-300'
-                                  : isOriginal && !isSelected
-                                  ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
-                                  : canSelect && slot.available
-                                  ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
-                                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              }`}
-                            >
-                              {formatTime(slot.startTime)}
-                              {isOriginal && !isSelected && (
-                                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {data && originalSlots.length > 0 && (
+                    <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                      <strong>Obecna rezerwacja:</strong> {formatTime(data.startTime)}
+                      {' '}({data.durationMinutes} min)
                     </div>
                   )}
+                  <TimeSlotPicker
+                    slots={availableSlots}
+                    selectedSlots={selectedSlots}
+                    onSelectionChange={setSelectedSlots}
+                    slotDurationMinutes={data?.restaurant.slotDurationMinutes || 90}
+                    loading={loadingSlots}
+                    emptyMessage="Brak dostępnych slotów w tym dniu"
+                    originalSlots={originalSlots}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-700">Uwagi (opcjonalnie)</Label>

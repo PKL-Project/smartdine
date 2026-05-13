@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession, signIn } from "next-auth/react";
+import { TimeSlotPicker, TimeSlot } from "@/components/TimeSlotPicker";
 
 type Restaurant = {
   id: string;
@@ -20,12 +21,6 @@ type Restaurant = {
   }[];
 };
 
-interface TimeSlot {
-  slotIndex: number;
-  startTime: string;
-  endTime: string;
-  available: boolean;
-}
 
 export default function ReserveForm({
   restaurant,
@@ -74,55 +69,6 @@ export default function ReserveForm({
     fetchSlots();
   }, [selectedDate, party, restaurant.slug]);
 
-  // Handle slot selection (allow up to 2 sequential slots)
-  function handleSlotClick(slotIndex: number) {
-    if (selectedSlots.includes(slotIndex)) {
-      // Deselect
-      setSelectedSlots(selectedSlots.filter(i => i !== slotIndex));
-    } else if (selectedSlots.length === 0) {
-      // First selection
-      setSelectedSlots([slotIndex]);
-    } else if (selectedSlots.length === 1) {
-      const firstSlot = selectedSlots[0];
-      // Check if sequential
-      if (slotIndex === firstSlot + 1) {
-        // Sequential forward
-        setSelectedSlots([firstSlot, slotIndex]);
-      } else if (slotIndex === firstSlot - 1) {
-        // Sequential backward
-        setSelectedSlots([slotIndex, firstSlot]);
-      } else {
-        // Not sequential, replace selection
-        setSelectedSlots([slotIndex]);
-      }
-    } else {
-      // Already have 2 slots, replace with new selection
-      setSelectedSlots([slotIndex]);
-    }
-  }
-
-  function isSlotSelected(slotIndex: number): boolean {
-    return selectedSlots.includes(slotIndex);
-  }
-
-  function canSelectSlot(slotIndex: number): boolean {
-    const slot = availableSlots[slotIndex];
-    if (!slot || !slot.available) return false;
-
-    if (selectedSlots.length === 0) return true;
-    if (selectedSlots.length === 1) {
-      const firstSlot = selectedSlots[0];
-      // Can select if sequential
-      if (slotIndex === firstSlot + 1 || slotIndex === firstSlot - 1) {
-        // Check if the slot in between is also available
-        return true;
-      }
-      // Or can start a new selection
-      return true;
-    }
-    // Already have 2 slots
-    return selectedSlots.includes(slotIndex);
-  }
 
   async function submitReservation(e: React.FormEvent) {
     e.preventDefault();
@@ -174,10 +120,6 @@ export default function ReserveForm({
     }
   }
 
-  function formatTime(isoString: string): string {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-  }
 
   // Calculate total price
   const totalPrice = restaurant.categories.reduce((total, category) => {
@@ -273,39 +215,16 @@ export default function ReserveForm({
                 <div className="text-sm text-gray-600 p-3 border rounded-lg bg-gray-50">
                   Dostępne sloty są widoczne tylko dla zalogowanych użytkowników
                 </div>
-              ) : loadingSlots ? (
-                <div className="text-sm text-gray-600 p-3 border rounded-lg">
-                  Ładowanie dostępnych slotów...
-                </div>
-              ) : availableSlots.length === 0 ? (
-                <div className="text-sm text-gray-600 p-3 border rounded-lg bg-gray-50">
-                  Brak dostępnych slotów w tym dniu
-                </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg">
-                  {availableSlots.map((slot) => {
-                    const isSelected = isSlotSelected(slot.slotIndex);
-                    const canSelect = canSelectSlot(slot.slotIndex);
-
-                    return (
-                      <button
-                        key={slot.slotIndex}
-                        type="button"
-                        disabled={!canSelect}
-                        onClick={() => handleSlotClick(slot.slotIndex)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          isSelected
-                            ? 'bg-orange-600 text-white ring-2 ring-orange-300'
-                            : canSelect && slot.available
-                            ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
-                        {formatTime(slot.startTime)}
-                      </button>
-                    );
-                  })}
-                </div>
+                <TimeSlotPicker
+                  slots={availableSlots}
+                  selectedSlots={selectedSlots}
+                  onSelectionChange={setSelectedSlots}
+                  slotDurationMinutes={restaurant.slotDurationMinutes}
+                  disabled={!canMakeReservation}
+                  loading={loadingSlots}
+                  emptyMessage="Brak dostępnych slotów w tym dniu"
+                />
               )}
             </div>
             <div className="space-y-2">

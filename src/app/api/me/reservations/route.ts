@@ -11,6 +11,7 @@ export const GET = withAuth(async (req, session) => {
     select: {
       id: true,
       startTime: true,
+      durationMinutes: true,
       partySize: true,
       status: true,
       restaurant: {

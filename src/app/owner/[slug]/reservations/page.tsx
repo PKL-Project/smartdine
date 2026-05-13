@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 interface Reservation {
   id: string;
   startTime: string;
+  durationMinutes: number;
   partySize: number;
   status: string;
   user: {
@@ -131,7 +132,10 @@ export default function OwnerReservations() {
             <div className="text-sm">
               <div>
                 <span className={`font-medium ${isPast ? "text-gray-600" : "text-gray-900"}`}>
-                  {new Date(res.startTime).toLocaleString()}
+                  {new Date(res.startTime).toLocaleDateString("pl-PL")}{' '}
+                  {new Date(res.startTime).toLocaleTimeString("pl-PL", { hour: '2-digit', minute: '2-digit' })}
+                  {' - '}
+                  {new Date(new Date(res.startTime).getTime() + res.durationMinutes * 60000).toLocaleTimeString("pl-PL", { hour: '2-digit', minute: '2-digit' })}
                 </span> •{" "}
                 {res.partySize} os.
               </div>

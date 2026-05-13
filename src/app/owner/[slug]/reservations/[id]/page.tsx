@@ -130,8 +130,12 @@ export default function OwnerReservationDetailPage() {
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold text-gray-900">Szczegóły rezerwacji</h3>
                   <div className="text-sm text-gray-700 space-y-1">
-                    <div>Data i godzina: <span className="font-medium">{new Date(data.startTime).toLocaleString("pl-PL")}</span></div>
-                    <div>Czas trwania: <span className="font-medium">{data.durationMinutes} min</span></div>
+                    <div>Data i godzina: <span className="font-medium">
+                      {new Date(data.startTime).toLocaleDateString("pl-PL")}{' '}
+                      {new Date(data.startTime).toLocaleTimeString("pl-PL", { hour: '2-digit', minute: '2-digit' })}
+                      {' - '}
+                      {new Date(new Date(data.startTime).getTime() + data.durationMinutes * 60000).toLocaleTimeString("pl-PL", { hour: '2-digit', minute: '2-digit' })}
+                    </span></div>
                     <div>Liczba osób: <span className="font-medium">{data.partySize}</span></div>
                     {data.table && (
                       <div>Stolik: <span className="font-medium">{data.table.name} (pojemność: {data.table.capacity} os.)</span></div>

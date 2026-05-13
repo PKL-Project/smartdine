@@ -156,8 +156,14 @@ export default function EditRestaurantPage() {
       return;
     }
 
+    // Use the earliest opening time from all days as the base for slots
+    const earliestOpenTime = openingHours.reduce(
+      (min, h) => Math.min(min, h.openMinutes),
+      openingHours[0]?.openMinutes ?? 0
+    );
+
     const timeSlots: TimeSlotConfig[] = Array.from({ length: numSlots }, (_, i) => ({
-      startMinutes: i * slotDuration,
+      startMinutes: earliestOpenTime + i * slotDuration,
       durationMinutes: slotDuration,
     }));
 
