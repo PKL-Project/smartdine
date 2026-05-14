@@ -64,8 +64,7 @@ export function TimeSlotPicker({
       const slot = slots[i];
       const isSelected = selectedSlots.includes(slot.slotIndex);
       const nextSlot = slots[i + 1];
-      const isNextSelected =
-        nextSlot && selectedSlots.includes(nextSlot.slotIndex);
+      const isNextSelected = nextSlot && selectedSlots.includes(nextSlot.slotIndex);
 
       // Check if this slot and next slot are both selected (consecutive)
       if (isSelected && isNextSelected) {
@@ -137,26 +136,20 @@ export function TimeSlotPicker({
     }
   }
 
-  function handleMergedClick(slotIndices: number[]) {
-    if (disabled) return;
+  function handleMergedClick() {
+    if (disabled) {
+      return;
+    }
     // Clicking merged tile deselects all
     onSelectionChange([]);
   }
 
   if (loading) {
-    return (
-      <div className="text-sm text-gray-600 p-3 border rounded-lg">
-        Ładowanie dostępnych slotów...
-      </div>
-    );
+    return <div className="text-sm text-gray-600 p-3 border rounded-lg">Ładowanie dostępnych slotów...</div>;
   }
 
   if (slots.length === 0) {
-    return (
-      <div className="text-sm text-gray-600 p-3 border rounded-lg bg-gray-50">
-        {emptyMessage}
-      </div>
-    );
+    return <div className="text-sm text-gray-600 p-3 border rounded-lg bg-gray-50">{emptyMessage}</div>;
   }
 
   return (
@@ -167,8 +160,7 @@ export function TimeSlotPicker({
           (item.available ||
             item.isSelected ||
             (selectedSlots.length === 1 &&
-              (item.slotIndices[0] === selectedSlots[0] + 1 ||
-                item.slotIndices[0] === selectedSlots[0] - 1)));
+              (item.slotIndices[0] === selectedSlots[0] + 1 || item.slotIndices[0] === selectedSlots[0] - 1)));
 
         if (item.type === "merged") {
           // Merged consecutive slots - 2x single slot height + gap
@@ -176,12 +168,12 @@ export function TimeSlotPicker({
             <button
               key={`merged-${idx}`}
               type="button"
-              onClick={() => handleMergedClick(item.slotIndices)}
+              onClick={handleMergedClick}
               disabled={disabled}
               className={cn(
                 "w-full px-4 py-8 rounded-lg text-sm font-medium transition-all flex justify-between items-center",
                 "bg-orange-600 text-white ring-2 ring-orange-300 shadow-md",
-                disabled && "opacity-50 cursor-not-allowed"
+                disabled && "opacity-50 cursor-not-allowed",
               )}
             >
               <div className="flex flex-col items-start gap-1">
@@ -189,9 +181,7 @@ export function TimeSlotPicker({
                   {formatTime(item.startTime)} - {formatTime(item.endTime)}
                 </span>
                 {item.suggestedTable && (
-                  <span className="text-xs text-orange-200">
-                    Stolik: {item.suggestedTable.capacity} os.
-                  </span>
+                  <span className="text-xs text-orange-200">Stolik: {item.suggestedTable.capacity} os.</span>
                 )}
               </div>
               <span className="text-xs bg-orange-500 px-2 py-1 rounded">
@@ -212,19 +202,14 @@ export function TimeSlotPicker({
             onClick={() => handleSlotClick(slotIndex)}
             className={cn(
               "w-full px-4 py-3 rounded-lg text-sm font-medium transition-all flex justify-between items-center relative",
-              item.isSelected &&
-                "bg-orange-600 text-white ring-2 ring-orange-300 shadow-md",
-              !item.isSelected &&
-                item.isOriginal &&
-                "bg-blue-100 text-blue-700 border-2 border-blue-300",
+              item.isSelected && "bg-orange-600 text-white ring-2 ring-orange-300 shadow-md",
+              !item.isSelected && item.isOriginal && "bg-blue-100 text-blue-700 border-2 border-blue-300",
               !item.isSelected &&
                 !item.isOriginal &&
                 canSelect &&
                 item.available &&
                 "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200",
-              !canSelect &&
-                !item.isSelected &&
-                "bg-gray-100 text-gray-400 cursor-not-allowed"
+              !canSelect && !item.isSelected && "bg-gray-100 text-gray-400 cursor-not-allowed",
             )}
           >
             <div className="flex flex-col items-start gap-0.5">
@@ -232,10 +217,7 @@ export function TimeSlotPicker({
                 {formatTime(item.startTime)} - {formatTime(item.endTime)}
               </span>
               {item.suggestedTable && item.available && (
-                <span className={cn(
-                  "text-xs",
-                  item.isSelected ? "text-orange-200" : "text-gray-500"
-                )}>
+                <span className={cn("text-xs", item.isSelected ? "text-orange-200" : "text-gray-500")}>
                   Stolik: {item.suggestedTable.capacity} os.
                 </span>
               )}
@@ -245,11 +227,8 @@ export function TimeSlotPicker({
                 "text-xs px-2 py-1 rounded",
                 item.isSelected && "bg-orange-500",
                 !item.isSelected && item.isOriginal && "bg-blue-200",
-                !item.isSelected &&
-                  !item.isOriginal &&
-                  item.available &&
-                  "bg-green-100",
-                !item.available && !item.isSelected && "bg-gray-200"
+                !item.isSelected && !item.isOriginal && item.available && "bg-green-100",
+                !item.available && !item.isSelected && "bg-gray-200",
               )}
             >
               {slotDurationMinutes} min

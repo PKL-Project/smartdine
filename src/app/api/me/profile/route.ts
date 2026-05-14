@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { withAuth, ErrorResponses } from "@/lib/api-middleware";
+import { withAuth } from "@/lib/api-middleware";
 
 interface UpdateProfileBody {
   name?: string | null;

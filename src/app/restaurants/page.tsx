@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { usePolling } from "@/hooks/usePolling";
 import { RefreshIndicator } from "@/components/RefreshIndicator";
 import { BackToHomeButton } from "@/components/BackToHomeButton";
+import Image from "next/image";
 
 interface Restaurant {
   id: string;
@@ -84,7 +85,9 @@ export default function RestaurantsPage() {
                 key={r.id}
                 className="overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border"
               >
-                <img
+                <Image
+                  width={800}
+                  height={450}
                   src={r.imageUrl || `https://source.unsplash.com/600x320/?food,restaurant&sig=${r.id}`}
                   alt={r.name}
                   className="w-full h-40 object-cover"

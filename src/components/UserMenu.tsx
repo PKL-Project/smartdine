@@ -21,12 +21,7 @@ export function UserMenu() {
 
   const sessionExpiry = session.expires ? new Date(session.expires) : null;
   const timeUntilExpiry = sessionExpiry
-    ? Math.max(
-        0,
-        Math.floor(
-          (sessionExpiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-        )
-      )
+    ? Math.max(0, Math.floor((sessionExpiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
 
   async function handleSave() {
@@ -45,7 +40,7 @@ export function UserMenu() {
         const data = await res.json();
         alert(data.error || "Błąd aktualizacji profilu");
       }
-    } catch (error) {
+    } catch {
       alert("Błąd aktualizacji profilu");
     } finally {
       setLoading(false);
@@ -64,12 +59,7 @@ export function UserMenu() {
       </button>
 
       {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-50 animate-in fade-in"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-50 animate-in fade-in" onClick={() => setIsOpen(false)} />}
 
       {/* Slide-in Panel */}
       {isOpen && (
@@ -79,11 +69,7 @@ export function UserMenu() {
               {/* Header */}
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Profil użytkownika</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                >
+                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
                   <X className="w-5 h-5" />
                 </Button>
               </div>
@@ -91,25 +77,15 @@ export function UserMenu() {
               {/* User Info */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground w-20">
-                    Email:
-                  </span>
-                  <span className="text-sm font-medium">
-                    {session.user.email}
-                  </span>
+                  <span className="text-sm text-muted-foreground w-20">Email:</span>
+                  <span className="text-sm font-medium">{session.user.email}</span>
                 </div>
 
                 {!isEditing ? (
                   <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground w-20">
-                      Imię:
-                    </span>
+                    <span className="text-sm text-muted-foreground w-20">Imię:</span>
                     <span className="text-sm flex-1">
-                      {session.user.name || (
-                        <span className="text-muted-foreground italic">
-                          Nie ustawiono
-                        </span>
-                      )}
+                      {session.user.name || <span className="text-muted-foreground italic">Nie ustawiono</span>}
                     </span>
                     <Button
                       size="sm"
@@ -138,12 +114,7 @@ export function UserMenu() {
                       <Button size="sm" onClick={handleSave} disabled={loading}>
                         Zapisz
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setIsEditing(false)}
-                        disabled={loading}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} disabled={loading}>
                         Anuluj
                       </Button>
                     </div>
@@ -151,36 +122,23 @@ export function UserMenu() {
                 )}
 
                 <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground w-20">
-                    Rola:
-                  </span>
-                  <span className="text-sm font-medium">
-                    {session.user.role === "OWNER" ? "Właściciel" : "Klient"}
-                  </span>
+                  <span className="text-sm text-muted-foreground w-20">Rola:</span>
+                  <span className="text-sm font-medium">{session.user.role === "OWNER" ? "Właściciel" : "Klient"}</span>
                 </div>
 
                 <div className="p-3 bg-muted/50 rounded-lg space-y-1">
                   <div className="text-xs text-muted-foreground">
-                    Sesja wygasa za{" "}
-                    {timeUntilExpiry !== null
-                      ? `${timeUntilExpiry} dni`
-                      : "N/A"}
+                    Sesja wygasa za {timeUntilExpiry !== null ? `${timeUntilExpiry} dni` : "N/A"}
                   </div>
                   {sessionExpiry && (
-                    <div className="text-xs text-muted-foreground">
-                      {sessionExpiry.toLocaleString("pl-PL")}
-                    </div>
+                    <div className="text-xs text-muted-foreground">{sessionExpiry.toLocaleString("pl-PL")}</div>
                   )}
                 </div>
               </div>
 
               {/* Actions */}
               <div className="pt-2">
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                >
+                <Button variant="destructive" className="w-full" onClick={() => signOut({ callbackUrl: "/" })}>
                   Wyloguj się
                 </Button>
               </div>

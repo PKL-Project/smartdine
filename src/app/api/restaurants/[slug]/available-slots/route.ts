@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(
-  req: Request,
-  context: { params: Promise<{ slug: string }> }
-) {
+export async function GET(req: Request, context: { params: Promise<{ slug: string }> }) {
   const params = await context.params;
   const { slug } = params;
   const { searchParams } = new URL(req.url);
@@ -12,15 +9,12 @@ export async function GET(
   const partySizeStr = searchParams.get("partySize");
 
   if (!dateStr || !partySizeStr) {
-    return NextResponse.json(
-      { error: "Missing date or partySize parameter" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing date or partySize parameter" }, { status: 400 });
   }
 
   const partySize = parseInt(partySizeStr, 10);
   // Parse date string as local date (YYYY-MM-DD format)
-  const [year, month, day] = dateStr.split('-').map(Number);
+  const [year, month, day] = dateStr.split("-").map(Number);
   const requestedDate = new Date(year, month - 1, day);
   const weekday = requestedDate.getDay(); // 0=Sunday, 6=Saturday
 
@@ -32,11 +26,11 @@ export async function GET(
         where: { weekday },
       },
       timeSlots: {
-        orderBy: { startMinutes: 'asc' },
+        orderBy: { startMinutes: "asc" },
       },
       tables: {
         where: { capacity: { gte: partySize } },
-        orderBy: { capacity: 'asc' },
+        orderBy: { capacity: "asc" },
       },
     },
   });
@@ -54,8 +48,6 @@ export async function GET(
   if (restaurant.tables.length === 0) {
     return NextResponse.json({ availableSlots: [] });
   }
-
-  const openingHour = restaurant.hours[0];
 
   // Get all CONFIRMED reservations for this date
   // Only confirmed reservations block slots
@@ -79,9 +71,6 @@ export async function GET(
       durationMinutes: true,
     },
   });
-
-  // Total number of tables that can fit the party size
-  const totalTablesForPartySize = restaurant.tables.length;
 
   // Calculate available slots
   const availableSlots: Array<{
@@ -114,18 +103,20 @@ export async function GET(
 
     // Find the best available table (smallest that fits party size)
     // Tables are already ordered by capacity ascending
-    const availableTable = restaurant.tables.find(t => !bookedTableIds.has(t.id));
+    const availableTable = restaurant.tables.find((t) => !bookedTableIds.has(t.id));
 
     availableSlots.push({
       slotIndex: i,
       startTime: slotDate.toISOString(),
       endTime: slotEndDate.toISOString(),
       available: !!availableTable,
-      suggestedTable: availableTable ? {
-        id: availableTable.id,
-        name: availableTable.name,
-        capacity: availableTable.capacity,
-      } : null,
+      suggestedTable: availableTable
+        ? {
+            id: availableTable.id,
+            name: availableTable.name,
+            capacity: availableTable.capacity,
+          }
+        : null,
     });
   }
 

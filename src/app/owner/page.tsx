@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 
 export default async function OwnerHome() {
@@ -38,9 +37,7 @@ export default async function OwnerHome() {
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
             Panel właściciela
           </h1>
-          <p className="text-gray-600">
-            Zarządzaj swoją restauracją w jednym miejscu
-          </p>
+          <p className="text-gray-600">Zarządzaj swoją restauracją w jednym miejscu</p>
         </div>
 
         {/* Restaurant Card */}
@@ -56,18 +53,25 @@ export default async function OwnerHome() {
               {/* Action Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Reservations - Primary */}
-                <Link
-                  href={`/owner/${restaurant.slug}/reservations`}
-                  className="group col-span-1 md:col-span-2"
-                >
+                <Link href={`/owner/${restaurant.slug}/reservations`} className="group col-span-1 md:col-span-2">
                   <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 p-6 text-white hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-xl font-semibold mb-1">Rezerwacje</h3>
                         <p className="text-orange-100 text-sm">Zarządzaj rezerwacjami i stolami</p>
                       </div>
-                      <svg className="w-12 h-12 opacity-80 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <svg
+                        className="w-12 h-12 opacity-80 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -81,8 +85,18 @@ export default async function OwnerHome() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">Menu</h3>
                         <p className="text-gray-600 text-sm">Edytuj dania i kategorie</p>
                       </div>
-                      <svg className="w-10 h-10 text-orange-600 opacity-60 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      <svg
+                        className="w-10 h-10 text-orange-600 opacity-60 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -96,8 +110,18 @@ export default async function OwnerHome() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">Edytuj</h3>
                         <p className="text-gray-600 text-sm">Dane restauracji</p>
                       </div>
-                      <svg className="w-10 h-10 text-blue-600 opacity-60 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <svg
+                        className="w-10 h-10 text-blue-600 opacity-60 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -111,9 +135,24 @@ export default async function OwnerHome() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">Podgląd restauracji</h3>
                         <p className="text-gray-600 text-sm">Zobacz jak widzą Cię klienci</p>
                       </div>
-                      <svg className="w-10 h-10 text-gray-600 opacity-60 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <svg
+                        className="w-10 h-10 text-gray-600 opacity-60 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
                       </svg>
                     </div>
                   </div>

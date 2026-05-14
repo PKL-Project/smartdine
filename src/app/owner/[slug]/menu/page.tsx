@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,11 +37,7 @@ export default function MenuManagementPage() {
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
 
-  useEffect(() => {
-    fetchMenu();
-  }, [slug]);
-
-  async function fetchMenu() {
+  const fetchMenu = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/owner/restaurants/${slug}/menu`);
@@ -54,7 +50,11 @@ export default function MenuManagementPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    fetchMenu();
+  }, [slug, fetchMenu]);
 
   async function createCategory(e: React.FormEvent) {
     e.preventDefault();
@@ -164,9 +164,7 @@ export default function MenuManagementPage() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               Zarządzanie menu
             </h1>
-            <p className="text-sm text-gray-600">
-              Dodaj kategorie i pozycje menu
-            </p>
+            <p className="text-sm text-gray-600">Dodaj kategorie i pozycje menu</p>
           </div>
           <Button
             variant="secondary"
@@ -227,9 +225,7 @@ export default function MenuManagementPage() {
         {/* Categories and Items */}
         <div className="space-y-6">
           {categories.length === 0 ? (
-            <p className="text-sm text-gray-600">
-              Brak kategorii. Dodaj pierwszą kategorię, aby zacząć.
-            </p>
+            <p className="text-sm text-gray-600">Brak kategorii. Dodaj pierwszą kategorię, aby zacząć.</p>
           ) : (
             categories.map((category) => (
               <Card key={category.id} className="bg-white/80 backdrop-blur-sm shadow-lg">
@@ -320,9 +316,7 @@ export default function MenuManagementPage() {
                   {/* Menu Items */}
                   <div className="space-y-2">
                     {category.items.length === 0 ? (
-                      <p className="text-sm text-gray-600">
-                        Brak pozycji w tej kategorii
-                      </p>
+                      <p className="text-sm text-gray-600">Brak pozycji w tej kategorii</p>
                     ) : (
                       category.items.map((item) => (
                         <div
@@ -332,17 +326,9 @@ export default function MenuManagementPage() {
                           <div className="flex-1">
                             <div className="font-medium text-gray-900">
                               {item.name}
-                              {!item.isAvailable && (
-                                <span className="ml-2 text-xs text-gray-500">
-                                  (niedostępne)
-                                </span>
-                              )}
+                              {!item.isAvailable && <span className="ml-2 text-xs text-gray-500">(niedostępne)</span>}
                             </div>
-                            {item.description && (
-                              <div className="text-xs text-gray-600">
-                                {item.description}
-                              </div>
-                            )}
+                            {item.description && <div className="text-xs text-gray-600">{item.description}</div>}
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-sm font-medium text-orange-600">
@@ -352,9 +338,7 @@ export default function MenuManagementPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  toggleItemAvailability(item.id, item.isAvailable)
-                                }
+                                onClick={() => toggleItemAvailability(item.id, item.isAvailable)}
                                 className="hover:shadow-md transition-shadow"
                               >
                                 {item.isAvailable ? "Ukryj" : "Pokaż"}

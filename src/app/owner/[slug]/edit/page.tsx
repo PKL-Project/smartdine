@@ -72,14 +72,14 @@ export default function EditRestaurantPage() {
         setNumSlots(data.timeSlots.length || 8);
 
         // Merge existing table groups with default capacities
-        const mergedTables = [2, 4, 6, 8].map(capacity => {
-          const existing = data.tableGroups.find(g => g.capacity === capacity);
+        const mergedTables = [2, 4, 6, 8].map((capacity) => {
+          const existing = data.tableGroups.find((g) => g.capacity === capacity);
           return { capacity, quantity: existing?.quantity || 0 };
         });
         setTables(mergedTables);
 
         setOpeningHours(data.hours);
-      } catch (error) {
+      } catch {
         alert("Błąd wczytywania danych restauracji");
       } finally {
         setLoading(false);
@@ -100,9 +100,7 @@ export default function EditRestaurantPage() {
   }
 
   function updateOpeningHour(weekday: number, field: "openMinutes" | "closeMinutes", value: number) {
-    setOpeningHours((prev) =>
-      prev.map((h) => (h.weekday === weekday ? { ...h, [field]: value } : h))
-    );
+    setOpeningHours((prev) => prev.map((h) => (h.weekday === weekday ? { ...h, [field]: value } : h)));
   }
 
   function toggleWeekday(weekday: number) {
@@ -111,9 +109,7 @@ export default function EditRestaurantPage() {
       if (exists) {
         return prev.filter((h) => h.weekday !== weekday);
       } else {
-        return [...prev, { weekday, openMinutes: 600, closeMinutes: 1320 }].sort(
-          (a, b) => a.weekday - b.weekday
-        );
+        return [...prev, { weekday, openMinutes: 600, closeMinutes: 1320 }].sort((a, b) => a.weekday - b.weekday);
       }
     });
   }
@@ -159,7 +155,7 @@ export default function EditRestaurantPage() {
     // Use the earliest opening time from all days as the base for slots
     const earliestOpenTime = openingHours.reduce(
       (min, h) => Math.min(min, h.openMinutes),
-      openingHours[0]?.openMinutes ?? 0
+      openingHours[0]?.openMinutes ?? 0,
     );
 
     const timeSlots: TimeSlotConfig[] = Array.from({ length: numSlots }, (_, i) => ({
@@ -206,9 +202,7 @@ export default function EditRestaurantPage() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
                 Edytuj restaurację
               </h1>
-              <p className="text-sm text-gray-600 mt-2">
-                Zaktualizuj ustawienia swojej restauracji
-              </p>
+              <p className="text-sm text-gray-600 mt-2">Zaktualizuj ustawienia swojej restauracji</p>
             </div>
             <form onSubmit={submit} className="space-y-6">
               {/* Basic Info */}
@@ -242,18 +236,14 @@ export default function EditRestaurantPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {tables.map((table, idx) => (
                     <div key={table.capacity} className="space-y-2">
-                      <Label className="text-gray-700">
-                        Stolik na {table.capacity} os.
-                      </Label>
+                      <Label className="text-gray-700">Stolik na {table.capacity} os.</Label>
                       <Input
                         type="number"
                         min={0}
                         value={table.quantity}
                         onChange={(e) =>
                           setTables((prev) =>
-                            prev.map((t, i) =>
-                              i === idx ? { ...t, quantity: Number(e.target.value) } : t
-                            )
+                            prev.map((t, i) => (i === idx ? { ...t, quantity: Number(e.target.value) } : t)),
                           )
                         }
                         className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
@@ -286,9 +276,7 @@ export default function EditRestaurantPage() {
                             <Input
                               type="time"
                               value={minutesToTime(hour.openMinutes)}
-                              onChange={(e) =>
-                                updateOpeningHour(weekday, "openMinutes", timeToMinutes(e.target.value))
-                              }
+                              onChange={(e) => updateOpeningHour(weekday, "openMinutes", timeToMinutes(e.target.value))}
                               className="w-32 border-gray-300 focus:border-orange-500"
                             />
                             <span className="text-gray-500">—</span>
@@ -359,10 +347,22 @@ export default function EditRestaurantPage() {
                   const willFit = totalSlotTime <= longestDay;
 
                   return (
-                    <div className={`text-sm p-3 rounded-lg ${willFit ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                      <div>Całkowity czas slotów: <strong>{hours}h {mins}min</strong></div>
+                    <div
+                      className={`text-sm p-3 rounded-lg ${willFit ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}
+                    >
+                      <div>
+                        Całkowity czas slotów:{" "}
+                        <strong>
+                          {hours}h {mins}min
+                        </strong>
+                      </div>
                       {openingHours.length > 0 && (
-                        <div>Najdłuższy dzień otwarcia: <strong>{longestHours}h {longestMins}min</strong></div>
+                        <div>
+                          Najdłuższy dzień otwarcia:{" "}
+                          <strong>
+                            {longestHours}h {longestMins}min
+                          </strong>
+                        </div>
                       )}
                       {!willFit && openingHours.length > 0 && (
                         <div className="mt-1 font-medium">⚠️ Sloty nie mieszczą się w godzinach otwarcia</div>
@@ -379,12 +379,7 @@ export default function EditRestaurantPage() {
               )}
 
               <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => router.push("/owner")}
-                  className="flex-1"
-                >
+                <Button type="button" variant="secondary" onClick={() => router.push("/owner")} className="flex-1">
                   Anuluj
                 </Button>
                 <Button
