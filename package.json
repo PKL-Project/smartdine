@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "db:clear": "node scripts/clearDb.js",
     "seed:all": "node scripts/seedMultipleRestaurants.js",
     "seed:restaurant": "node scripts/seedRestaurant.js",
