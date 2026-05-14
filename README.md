@@ -1,50 +1,50 @@
 # SmartDine (Next.js + Prisma)
 
-Full-stack reservation & preorder app for restaurants. Users can sign in with magic links, choose a role (Owner or Client), and then:
+Aplikacja FullStack do rezerwacji stolików i przed-zamówień dla restauracji. Użytkownicy logują się przy użyciu "magic link", wybierają rolę (Właściciel lub Klient), a następnie:
 
-- **Owners**: create a restaurant, manage tables/menu, accept/decline reservations.
-- **Clients**: browse restaurants and make reservations (with optional pre-order).
+- **Właściciele**: tworzą restaurację, zarządzają stolikami/menu, akceptują/odrzucają rezerwacje.
+- **Klienci**: przeglądają restauracje i dokonują rezerwacji (z opcjonalnym przed-zamówieniem).
 
-## Tech Stack
+## Technologie
 
 - Next.js (App Router) + TypeScript
 - Tailwind + shadcn/ui
-- Auth.js (NextAuth) — Email magic links via Resend
+- Auth.js (NextAuth) — logowanie e‑mailem z linkiem magicznym przez Resend
 - Prisma ORM + SQLite (dev)
 
 ---
 
-## Prerequisites
+## Wymagania
 
-- **Node 20+** (recommended Node 20 LTS)
-- **nvm** installed (recommended)
-  The repo includes an **`.nvmrc`**. From the project root:
+- **Node 20+** (zalecana wersja LTS 20)
+- Zalecane: **nvm**
+  Repo zawiera **`.nvmrc`**. W katalogu głównym projektu:
 
   ```bash
-  nvm use    # switches to the correct Node version
+  nvm use    # przełącza na właściwą wersję Node
   ```
 
-  If you don’t use nvm, ensure `node -v` shows **v20.x** or newer.
+  Jeśli nie używasz nvm, upewnij się, że `node -v` pokazuje **v20.x** lub nowszą.
 
-- **Resend account** (for magic-link email) with a verified sending domain (or use Resend’s test mode).
-- **npm** (comes with Node).
+- **Konto Resend** (do wysyłki linku magicznego) ze zweryfikowaną domeną nadawcy (lub tryb testowy).
+- **npm** (dostarczany z Node).
 
 ---
 
-## Quick Start
+## Szybki start
 
-### 1) Clone + install
+### 1) Klonowanie + instalacja
 
 ```bash
 git clone git@github.com:PKL-Project/smartdine.git
 cd smartdine
-nvm use                 # optional but recommended
+nvm use                 # opcjonalnie, ale zalecane
 npm install
 ```
 
-### 2) Environment variables
+### 2) Zmienne środowiskowe
 
-Create `.env.local` in the project root (you can also commit an `.env.example`):
+Utwórz plik `.env.local` w katalogu głównym (możesz też dodać do repo plik `.env.example`):
 
 ```env
 # Prisma
@@ -59,208 +59,216 @@ RESEND_API_KEY="re_XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 EMAIL_FROM="auth@your-verified-domain.com"
 ```
 
-> Make sure the `EMAIL_FROM` domain is verified in Resend.
+> Upewnij się, że domena w `EMAIL_FROM` jest zweryfikowana w Resend.
 
-### 3) Database (Prisma + SQLite)
+### 3) Baza danych (Prisma + SQLite)
 
-Run initial migration (creates `prisma/dev.db`) and generate the Prisma Client:
+Uruchom początkową migrację (utworzy `prisma/dev.db`) i wygeneruj klienta Prisma:
 
 ```bash
 npx prisma migrate dev
 npx prisma generate
 ```
 
-### 4) Start the app
-
-```bash
-npm run dev
-```
-
-Visit http://localhost:3000
-
-**First login flow:**
-
-- Sign in with your email (magic link via Resend).
-- You'll be taken to **/onboarding** to choose **Owner** or **Client**.
-- Owners land on **/owner**; Clients go to **/client**.
-
-**Development Mode (Magic Link in Console):**
-
-- In development mode (`NODE_ENV=development`), the magic link email is **not actually sent**.
-- Instead, the link is **displayed in your terminal/console** with a clickable URL.
-- Check your console output for: `🔗 Link logowania (kliknij aby się zalogować)`
-- Simply click the link (or copy/paste it) to sign in instantly.
-
----
-
-## Cheatsheet (Prisma & DB)
-
-### Change the schema (add/modify models)
-
-1. **Create a migration** (also updates SQLite):
-   ```bash
-   npx prisma migrate dev --name <your_change>
-   ```
-2. **Regenerate Prisma Client** (TypeScript types):
-   ```bash
-   npx prisma generate
-   ```
-   > `migrate dev` usually triggers `generate`, but running both is a safe habit during development.
-
-### Open Prisma Studio
-
-```bash
-npx prisma studio
-```
-
-```bash
-npx prisma migrate reset
-```
-
-- Recreates the database and **automatically runs the seed**.
-
----
-
-## Scripts
-
-### Development
-
-- `npm run dev` — start Next.js in dev mode
-- `npm run build` — production build
-- `npm start` — start production server
-
-### Database Management
-
-- `npx prisma studio` — open Prisma Studio (DB UI)
-- `npx prisma migrate dev --name <name>` — create a new migration
-- `npx prisma generate` — regenerate Prisma client
-- `npx prisma migrate reset` — drop & recreate DB (runs seed)
-- `npm run db:clear` — clear all data from database
-
-### Quick Setup Scripts
-
-#### Seed Multiple Restaurants (Recommended)
-
-Creates 5 diverse restaurants with realistic menus, varied hours, and different cuisines:
+### 4) Seedowanie danych
 
 ```bash
 npm run seed:all
 ```
 
-**What it creates:**
+### 4) Start aplikacji
 
-1. **Bella Italia** (Italian) - owner1@example.com
-   - Mon-Sat, 12:00-23:00, 90-min slots
+```bash
+npm run dev
+```
+
+Odwiedź http://localhost:3000
+
+**Pierwsze logowanie:**
+
+- Zaloguj się swoim e‑mailem (link magiczny przez Resend).
+- Zostaniesz przeniesiony na **/onboarding**, aby wybrać **Owner** lub **Klient**.
+- Właściciele trafią na **/owner**; Klienci na **/client**.
+
+**Tryb deweloperski (Magic link w konsoli):**
+
+- W trybie deweloperskim (`NODE_ENV=development`), link magiczny **NIE jest wysyłany emailem**.
+- Zamiast tego, link jest **wyświetlany w terminalu/konsoli** jako klikalny URL.
+- Sprawdź output konsoli dla: `🔗 Link logowania (kliknij aby się zalogować)`
+- Po prostu kliknij link (lub skopiuj/wklej) aby zalogować się natychmiastowo.
+
+---
+
+## Ściąga (Prisma & DB)
+
+### Zmiany w schemacie (dodawanie/modyfikacja modeli)
+
+1. **Utwórz migrację** (aktualizuje też SQLite):
+   ```bash
+   npx prisma migrate dev --name <twoja_zmiana>
+   ```
+2. **Wygeneruj ponownie Prisma Client** (typy TypeScript):
+   ```bash
+   npx prisma generate
+   ```
+   > `migrate dev` zwykle uruchamia też `generate`, ale w trakcie developmentu bezpiecznie jest odpalić oba polecenia.
+
+### Otwórz Prisma Studio
+
+```bash
+npx prisma studio
+```
+
+### Zresetuj bazę (drop & recreate)
+
+```bash
+npx prisma migrate reset
+```
+
+- Odtwarza bazę i **automatycznie uruchamia seed**.
+
+---
+
+## Skrypty
+
+### Rozwój aplikacji
+
+- `npm run dev` — uruchomienie Next.js w trybie dev
+- `npm run build` — build produkcyjny
+- `npm start` — start serwera produkcyjnego
+
+### Zarządzanie bazą danych
+
+- `npx prisma studio` — otwórz Prisma Studio (UI bazy danych)
+- `npx prisma migrate dev --name <nazwa>` — utwórz nową migrację
+- `npx prisma generate` — regeneruj klienta Prisma
+- `npx prisma migrate reset` — usuń i odtwórz bazę (uruchamia seed)
+- `npm run db:clear` — wyczyść wszystkie dane z bazy
+
+### Skrypty szybkiej konfiguracji
+
+#### Seedowanie wielu restauracji (Zalecane)
+
+Tworzy 5 zróżnicowanych restauracji z realistycznymi menu, różnymi godzinami i kuchniami:
+
+```bash
+npm run seed:all
+```
+
+**Co tworzy:**
+
+1. **Bella Italia** (Włoska) - owner1@example.com
+   - Pn-Sob, 12:00-23:00, sloty 90-min
    - Menu: Antipasti, Pasta, Pizza, Dolci
 
-2. **Sushi Master** (Japanese) - owner2@example.com
-   - Every day, 13:00-22:00, 60-min slots
-   - Menu: Maki, Nigiri, Sashimi, Sides
+2. **Sushi Master** (Japońska) - owner2@example.com
+   - Codziennie, 13:00-22:00, sloty 60-min
+   - Menu: Maki, Nigiri, Sashimi, Dodatki
 
-3. **Burgerholic** (American) - owner3@example.com
-   - Every day, 11:00-23:00, 60-min slots
-   - Menu: Classic & Premium Burgers, Sides, Drinks
+3. **Burgerholic** (Amerykańska) - owner3@example.com
+   - Codziennie, 11:00-23:00, sloty 60-min
+   - Menu: Burgery Classic i Premium, Dodatki, Napoje
 
-4. **Green Garden** (Vegan) - owner4@example.com
-   - Mon-Fri only, 9:00-20:00, 90-min slots (includes breakfast)
-   - Menu: Breakfast, Bowls, Main Dishes, Drinks
+4. **Green Garden** (Wegańska) - owner4@example.com
+   - Tylko Pn-Pt, 9:00-20:00, sloty 90-min (ze śniadaniami)
+   - Menu: Śniadania, Bowls, Dania główne, Napoje
 
 5. **Steakhouse Premium** (Fine Dining) - owner5@example.com
-   - Tue-Sat only, 17:00-23:00, 120-min slots (dinner only)
-   - Menu: Appetizers, Premium Steaks, Sides, Wines
+   - Tylko Wt-Sob, 17:00-23:00, sloty 120-min (tylko kolacje)
+   - Menu: Przystawki, Steki Premium, Dodatki, Wina
 
-Each restaurant includes:
+Każda restauracja zawiera:
 
-- Owner account (owner1-5@example.com)
-- 6 tables (varying capacities)
-- Realistic opening hours and time slots
-- Complete menus with 3-4 categories and 3-8 items per category
-- All items with Polish descriptions and pricing
+- Konto właściciela (owner1-5@example.com)
+- 6 stolików (różne pojemności)
+- Realistyczne godziny otwarcia i sloty czasowe
+- Kompletne menu z 3-4 kategoriami i 3-8 pozycjami w kategorii
+- Wszystkie pozycje z polskimi opisami i cenami
 
-#### Create a Single Restaurant with Owner Account
+#### Utwórz pojedynczą restaurację z kontem właściciela
 
-Creates a fully configured restaurant with menu, opening hours, and time slots:
+Tworzy w pełni skonfigurowaną restaurację z menu, godzinami otwarcia i slotami czasowymi:
 
 ```bash
-npm run seed:restaurant "Restaurant Name" owner@example.com
+npm run seed:restaurant "Nazwa Restauracji" wlasciciel@example.com
 ```
 
-**What it creates:**
+**Co tworzy:**
 
-- Owner account with the specified email
-- Restaurant with the given name (slug is auto-generated)
-- 6 tables (3x 2-person, 2x 4-person, 1x 6-person)
-- Opening hours: Monday-Sunday, 10:00-22:00
-- 8 time slots of 90 minutes each (10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00, 20:30)
-- Full menu with 4 categories:
-  - Przystawki (appetizers) - 3 items
-  - Dania główne (main dishes) - 4 items
-  - Desery (desserts) - 3 items
-  - Napoje (beverages) - 4 items
+- Konto właściciela z podanym adresem email
+- Restauracja o podanej nazwie (slug generowany automatycznie)
+- 6 stolików (3x 2-osobowe, 2x 4-osobowe, 1x 6-osobowy)
+- Godziny otwarcia: Poniedziałek-Niedziela, 10:00-22:00
+- 8 slotów czasowych po 90 minut (10:00, 11:30, 13:00, 14:30, 16:00, 17:30, 19:00, 20:30)
+- Pełne menu z 4 kategoriami:
+  - Przystawki - 3 pozycje
+  - Dania główne - 4 pozycje
+  - Desery - 3 pozycje
+  - Napoje - 4 pozycje
 
-**Example:**
+**Przykład:**
 
 ```bash
-npm run seed:restaurant "Bistro Aurora" owner@restaurant.com
+npm run seed:restaurant "Bistro Aurora" wlasciciel@restauracja.com
 ```
 
-The script outputs the restaurant slug and URLs for both client and owner panels.
+Skrypt wyświetla slug restauracji oraz adresy URL dla panelu klienta i właściciela.
 
-#### Create a Client Account
+#### Utwórz konto klienta
 
-Creates a client user account:
+Tworzy konto użytkownika klienta:
 
 ```bash
-npm run create:client client@example.com
+npm run create:client klient@example.com
 ```
 
-**What it creates:**
+**Co tworzy:**
 
-- Client account with the specified email
-- Ready to make reservations immediately
+- Konto klienta z podanym adresem email
+- Gotowe do natychmiastowego dokonywania rezerwacji
 
-**Example:**
+**Przykład:**
 
 ```bash
-npm run create:client john@example.com
+npm run create:client jan@example.com
 ```
 
 ---
 
-## Roles & Access
+## Role i dostęp
 
-- On first login, users choose a role:
-  - **Owner**: access `/owner` (create/manage restaurant, manage reservations).
-  - **Client**: browse `/client` (view restaurants and reservations), make reservations.
-- The middleware restricts `/owner/**` to users with role `OWNER` and forces onboarding if no role is set.
+- Przy pierwszym logowaniu użytkownik wybiera rolę:
+  - **Owner**: dostęp do `/owner` (tworzenie/zarządzanie restauracją, obsługa rezerwacji).
+  - **Klient**: przeglądanie `/client` (widok restauracji i rezerwacji), dokonywanie rezerwacji.
+- Middleware ogranicza `/owner/**` do roli `OWNER` i wymusza onboarding, jeśli rola nie jest ustawiona.
 
 ---
 
-## Troubleshooting
+## Rozwiązywanie problemów
 
-- **“Module not found: Can't resolve 'nodemailer'”**
-  Auth.js’s email provider imports `nodemailer` even if you send via Resend. Install it to satisfy the import:
+- **"Module not found: Can't resolve 'nodemailer'"**
+  Email provider Auth.js importuje `nodemailer` nawet jeśli wysyłasz przez Resend. Zainstaluj go aby zaspokoić import:
 
   ```bash
   npm i nodemailer
   ```
 
-  (Alternatively, use a custom provider that calls Resend directly.)
+  (Alternatywnie, użyj własnego providera, który wywołuje Resend bezpośrednio.)
 
-- **Magic link not arriving (Production)**
-  - Check `RESEND_API_KEY` and `EMAIL_FROM`.
-  - Verify sending domain in Resend.
-  - For local dev, consider Resend test mode or a catch-all inbox.
+- **Link magiczny nie dociera (Produkcja)**
+  - Sprawdź `RESEND_API_KEY` i `EMAIL_FROM`.
+  - Zweryfikuj domenę wysyłającą w Resend.
+  - Dla lokalnego dev, rozważ tryb testowy Resend lub catch-all inbox.
 
-- **Magic link in development mode**
-  - In dev mode, emails are **NOT sent** via Resend.
-  - The magic link appears in your **console/terminal** output.
-  - Look for the clickable link after you submit your email on the login page.
+- **Link magiczny w trybie deweloperskim**
+  - W trybie dev, emaile **NIE są wysyłane** przez Resend.
+  - Link magiczny pojawia się w twoim **terminalu/konsoli**.
+  - Szukaj klikalnego linku po wysłaniu emaila na stronie logowania.
 
 ---
 
-## Folder Highlights
+## Struktura folderów
 
-- `src/app` — Next.js App Router routes (`/restaurants`, `/owner`, API routes under `/api/**`)
-- `src/lib` — Prisma client, Auth config, helpers
-- `prisma/schema.prisma` — database schema
+- `src/app` — trasy Next.js App Router (`/client`, `/owner`, API pod `/api/**`)
+- `src/lib` — klient Prisma, konfiguracja Auth, helpery
+- `prisma/schema.prisma` — schemat bazy
