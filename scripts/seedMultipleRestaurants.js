@@ -10,17 +10,25 @@ const restaurants = [
     address: "ul. Marszałkowska 12, Warszawa",
     phone: "+48 22 123 4567",
     slotDurationMinutes: 90,
-    openDays: [1, 2, 3, 4, 5, 6], // Mon-Sat
+    openDays: [1, 2, 3, 4, 5, 6],
     openTime: 12 * 60, // 12:00
     closeTime: 22 * 60, // 22:00
-    imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=600&fit=crop&q=80", // Italian restaurant
+    imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=600&fit=crop&q=80",
     categories: [
       {
         name: "Antipasti",
         sort: 1,
         items: [
-          { name: "Bruschetta al Pomodoro", priceCents: 1800, description: "Grillowane pieczywo z pomidorami, bazylią i czosnkiem" },
-          { name: "Carpaccio di Manzo", priceCents: 3200, description: "Cienkie plastry surowej wołowiny z rukolą i parmezanem" },
+          {
+            name: "Bruschetta al Pomodoro",
+            priceCents: 1800,
+            description: "Grillowane pieczywo z pomidorami, bazylią i czosnkiem",
+          },
+          {
+            name: "Carpaccio di Manzo",
+            priceCents: 3200,
+            description: "Cienkie plastry surowej wołowiny z rukolą i parmezanem",
+          },
           { name: "Caprese", priceCents: 2400, description: "Mozzarella di bufala, pomidory, bazylia, oliwa" },
         ],
       },
@@ -123,7 +131,11 @@ const restaurants = [
         name: "Burgery Classic",
         sort: 1,
         items: [
-          { name: "Classic Burger", priceCents: 2900, description: "Wołowina 200g, ser cheddar, pomidor, sałata, cebula" },
+          {
+            name: "Classic Burger",
+            priceCents: 2900,
+            description: "Wołowina 200g, ser cheddar, pomidor, sałata, cebula",
+          },
           { name: "Cheeseburger Deluxe", priceCents: 3200, description: "Podwójne mięso, podwójny ser, bekon" },
           { name: "BBQ Burger", priceCents: 3400, description: "Wołowina, krążki cebulowe, sos BBQ, bekon" },
           { name: "Mushroom Swiss", priceCents: 3300, description: "Pieczarki, ser szwajcarski, karmelizowana cebula" },
@@ -195,7 +207,11 @@ const restaurants = [
         items: [
           { name: "Burger Wegański", priceCents: 2900, description: "Kotlet z ciecierzycy, warzywa, sos tahini" },
           { name: "Curry z Ciecierzycą", priceCents: 3100, description: "Kremowe curry, mleko kokosowe, ryż" },
-          { name: "Lasagne Warzywna", priceCents: 3300, description: "Szpinak, bakłażan, sos pomidorowy, ser wegański" },
+          {
+            name: "Lasagne Warzywna",
+            priceCents: 3300,
+            description: "Szpinak, bakłażan, sos pomidorowy, ser wegański",
+          },
         ],
       },
       {
@@ -290,7 +306,7 @@ async function main() {
 
     // Calculate time slots
     const slotCount = Math.floor(
-      (restaurantData.closeTime - restaurantData.openTime) / restaurantData.slotDurationMinutes
+      (restaurantData.closeTime - restaurantData.openTime) / restaurantData.slotDurationMinutes,
     );
 
     // Create restaurant with full setup

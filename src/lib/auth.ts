@@ -5,9 +5,7 @@ import { Resend } from "resend";
 import { prisma } from "./prisma";
 
 const isDevelopment = process.env.NODE_ENV === "development";
-// const isDevelopment = false;
 
-// Mock Resend API for local development
 const resend = isDevelopment
   ? {
       emails: {
