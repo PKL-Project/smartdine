@@ -21,54 +21,37 @@ type Restaurant = {
   }[];
 };
 
-
 export default function ReserveForm({
   restaurant,
   isOwnerPreview = false,
+  availableSlots,
+  loadingSlots,
+  selectedDate,
+  onDateChange,
+  party,
+  onPartyChange,
 }: {
   restaurant: Restaurant;
   isOwnerPreview?: boolean;
+  availableSlots: TimeSlot[];
+  loadingSlots: boolean;
+  selectedDate: string;
+  onDateChange: (date: string) => void;
+  party: number;
+  onPartyChange: (party: number) => void;
 }) {
   const { data: session } = useSession();
   const router = useRouter();
-  const [party, setParty] = useState(2);
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1); // Default to tomorrow
-    return d.toISOString().split('T')[0];
-  });
-  const [selectedSlots, setSelectedSlots] = useState<number[]>([]); // Store slot indices
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedSlots, setSelectedSlots] = useState<number[]>([]);
   const [special, setSpecial] = useState("");
   const [preorder, setPreorder] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch available slots when date or party size changes
+  // Reset selected slots when available slots change
   useEffect(() => {
-    async function fetchSlots() {
-      if (!selectedDate) return;
-
-      setLoadingSlots(true);
-      setSelectedSlots([]);
-      try {
-        const res = await fetch(
-          `/api/restaurants/${restaurant.slug}/available-slots?date=${selectedDate}&partySize=${party}`
-        );
-        const data = await res.json();
-        setAvailableSlots(data.availableSlots || []);
-      } catch (err) {
-        console.error("Failed to fetch slots:", err);
-        setAvailableSlots([]);
-      } finally {
-        setLoadingSlots(false);
-      }
-    }
-
-    fetchSlots();
-  }, [selectedDate, party, restaurant.slug]);
-
+    setSelectedSlots([]);
+  }, [availableSlots]);
 
   async function submitReservation(e: React.FormEvent) {
     e.preventDefault();
@@ -79,6 +62,12 @@ export default function ReserveForm({
 
     if (selectedSlots.length === 0) {
       setError("Proszę wybrać przynajmniej jeden slot czasowy");
+      return;
+    }
+
+    const hasPreorderItems = Object.values(preorder).some((q) => Number(q) > 0);
+    if (!hasPreorderItems) {
+      setError("Proszę wybrać przynajmniej jedną pozycję z menu");
       return;
     }
 
@@ -120,7 +109,6 @@ export default function ReserveForm({
     }
   }
 
-
   // Calculate total price
   const totalPrice = restaurant.categories.reduce((total, category) => {
     return total + category.items.reduce((catTotal, item) => {
@@ -135,6 +123,7 @@ export default function ReserveForm({
 
   const isAuthenticated = !!session;
   const canMakeReservation = isAuthenticated && !isOwnerPreview;
+  const hasPreorderItems = totalPrice > 0;
 
   return (
     <Card className="rounded-2xl shadow-lg bg-white/80 backdrop-blur-sm">
@@ -176,7 +165,7 @@ export default function ReserveForm({
               <Input
                 type="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => onDateChange(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
                 required
                 disabled={!canMakeReservation}
@@ -190,7 +179,7 @@ export default function ReserveForm({
                 min={1}
                 max={12}
                 value={party}
-                onChange={(e) => setParty(Number(e.target.value))}
+                onChange={(e) => onPartyChange(Number(e.target.value))}
                 required
                 disabled={!canMakeReservation}
                 className="border-gray-300 focus:border-orange-500 focus:ring-orange-500 disabled:cursor-not-allowed"
@@ -241,7 +230,7 @@ export default function ReserveForm({
             <div className="space-y-2">
               <Button
                 type="submit"
-                disabled={loading || selectedSlots.length === 0 || !canMakeReservation}
+                disabled={loading || selectedSlots.length === 0 || !canMakeReservation || !hasPreorderItems}
                 className="bg-gradient-to-r from-orange-600 to-amber-600 hover:shadow-lg transition-shadow disabled:opacity-50 w-full"
               >
                 {loading ? "Rezerwuję…" : "Zarezerwuj"}
@@ -256,13 +245,21 @@ export default function ReserveForm({
                   Zaloguj się, aby dokonać rezerwacji
                 </p>
               )}
+              {canMakeReservation && !hasPreorderItems && (
+                <p className="text-xs text-orange-600 text-center">
+                  Wybierz przynajmniej jedną pozycję z menu, aby dokonać rezerwacji
+                </p>
+              )}
             </div>
           </div>
 
           <div className="space-y-3">
             <h3 className="font-semibold text-lg text-gray-900">
-              Zamówienie z wyprzedzeniem (opcjonalne)
+              Zamówienie z wyprzedzeniem
             </h3>
+            <p className="text-xs text-orange-600 font-medium">
+              Wymagane jest zamówienie przynajmniej jednej pozycji
+            </p>
             {!canMakeReservation && (
               <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border">
                 Zaloguj się, aby móc złożyć zamówienie z wyprzedzeniem

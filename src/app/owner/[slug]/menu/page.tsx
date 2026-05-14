@@ -131,6 +131,21 @@ export default function MenuManagementPage() {
     }
   }
 
+  async function deleteCategory(categoryId: string) {
+    if (!confirm("Czy na pewno chcesz usunąć tę kategorię?")) return;
+
+    const res = await fetch(`/api/owner/restaurants/${slug}/menu/categories/${categoryId}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      fetchMenu();
+    } else {
+      const data = await res.json();
+      alert(data.error || "Błąd");
+    }
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
@@ -221,14 +236,24 @@ export default function MenuManagementPage() {
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-gray-900">{category.name}</h2>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setShowItemForm(category.id)}
-                      className="hover:shadow-md transition-shadow"
-                    >
-                      Dodaj pozycję
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowItemForm(category.id)}
+                        className="hover:shadow-md transition-shadow"
+                      >
+                        Dodaj pozycję
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteCategory(category.id)}
+                        className="hover:shadow-md transition-shadow"
+                      >
+                        Usuń kategorię
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Add Item Form */}

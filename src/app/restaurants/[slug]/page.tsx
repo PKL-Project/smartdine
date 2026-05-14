@@ -1,46 +1,155 @@
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { money } from "@/lib/format";
 import ReserveForm from "./reserve-form";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { BackToRestaurantsButton } from "@/components/BackToRestaurantsButton";
+import { usePolling } from "@/hooks/usePolling";
+import { RefreshIndicator } from "@/components/RefreshIndicator";
+import { TimeSlot } from "@/components/TimeSlotPicker";
 
-export default async function RestaurantPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const session = await getServerSession(authOptions);
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string | null;
+  priceCents: number;
+  isAvailable: boolean;
+}
 
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { slug },
-    include: {
-      owner: true,
-      categories: {
-        include: {
-          items: { where: { isAvailable: true }, orderBy: { name: "asc" } },
-        },
-        orderBy: { sort: "asc" },
-      },
-      tables: { orderBy: { capacity: "asc" } },
-    },
+interface MenuCategory {
+  id: string;
+  name: string;
+  sort: number;
+  items: MenuItem[];
+}
+
+interface Table {
+  id: string;
+  name: string;
+  capacity: number;
+}
+
+interface Restaurant {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  slotDurationMinutes: number;
+  owner: { email: string };
+  categories: MenuCategory[];
+  tables: Table[];
+}
+
+function getDefaultDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+}
+
+export default function RestaurantPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const { data: session } = useSession();
+
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  // Reservation form state - lifted up for polling
+  const [selectedDate, setSelectedDate] = useState<string>(getDefaultDate);
+  const [party, setParty] = useState(2);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  const fetchRestaurant = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/restaurants/${slug}`);
+      if (res.status === 404) {
+        setNotFound(true);
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        setRestaurant(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch restaurant:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [slug]);
+
+  const fetchSlots = useCallback(async () => {
+    if (!selectedDate) return;
+
+    setLoadingSlots(true);
+    try {
+      const res = await fetch(
+        `/api/restaurants/${slug}/available-slots?date=${selectedDate}&partySize=${party}`
+      );
+      const data = await res.json();
+      setAvailableSlots(data.availableSlots || []);
+    } catch (err) {
+      console.error("Failed to fetch slots:", err);
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, [slug, selectedDate, party]);
+
+  // Initial load
+  useEffect(() => {
+    fetchRestaurant();
+  }, [fetchRestaurant]);
+
+  // Fetch slots when date or party changes
+  useEffect(() => {
+    if (restaurant) {
+      fetchSlots();
+    }
+  }, [selectedDate, party, restaurant?.slug]);
+
+  // Setup polling - refresh all data
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([fetchRestaurant(), fetchSlots()]);
+  }, [fetchRestaurant, fetchSlots]);
+
+  const { isRefreshing, refresh, lastRefresh } = usePolling({
+    enabled: !notFound && !loading,
+    onRefresh: handleRefresh,
   });
 
   // Check if current user is the owner
   const isOwner = session?.user?.email === restaurant?.owner.email;
 
-  if (!restaurant)
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
+        <div className="max-w-5xl mx-auto p-6">
+          <p className="text-gray-600">Ładowanie...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (notFound || !restaurant) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
         <div className="text-gray-700">Nie znaleziono restauracji.</div>
       </div>
     );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
       <div className="max-w-5xl mx-auto p-6 space-y-6">
-        <BackToRestaurantsButton />
+        <div className="flex items-center justify-between">
+          <BackToRestaurantsButton />
+          <RefreshIndicator isRefreshing={isRefreshing} onRefresh={refresh} lastRefresh={lastRefresh} />
+        </div>
 
         {isOwner && (
           <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-4 shadow-lg">
@@ -82,7 +191,16 @@ export default async function RestaurantPage({
           )}
         </div>
 
-        <ReserveForm restaurant={restaurant} isOwnerPreview={isOwner} />
+        <ReserveForm
+          restaurant={restaurant}
+          isOwnerPreview={isOwner}
+          availableSlots={availableSlots}
+          loadingSlots={loadingSlots}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          party={party}
+          onPartyChange={setParty}
+        />
 
         <section className="grid sm:grid-cols-2 gap-6">
           {restaurant.categories.map((cat) => (

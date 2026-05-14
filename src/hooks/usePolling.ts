@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
-// Default polling interval in milliseconds (30 seconds)
-export const DEFAULT_POLLING_INTERVAL = 30000;
+// Default polling interval in milliseconds (15 seconds)
+export const DEFAULT_POLLING_INTERVAL = 15_000;
 
 interface UsePollingOptions {
   interval?: number; // in milliseconds
@@ -11,11 +11,7 @@ interface UsePollingOptions {
   onRefresh?: () => void;
 }
 
-export function usePolling({
-  interval = DEFAULT_POLLING_INTERVAL,
-  enabled = true,
-  onRefresh,
-}: UsePollingOptions = {}) {
+export function usePolling({ interval = DEFAULT_POLLING_INTERVAL, enabled = true, onRefresh }: UsePollingOptions = {}) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -23,7 +19,7 @@ export function usePolling({
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     if (onRefresh) {
-      await onRefresh();
+      onRefresh();
     }
     setLastRefresh(new Date());
     setTimeout(() => setIsRefreshing(false), 500); // Show indicator for at least 500ms

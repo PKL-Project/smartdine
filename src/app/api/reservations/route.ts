@@ -36,6 +36,14 @@ export const POST = withAuth(async (req, session) => {
     );
   }
 
+  // Validate that at least one menu item is ordered
+  const validPreorderItems = preorderItems?.filter((item) => item.quantity && item.quantity > 0) || [];
+  if (validPreorderItems.length === 0) {
+    return ErrorResponses.badRequest(
+      "Zamówienie musi zawierać przynajmniej jedną pozycję z menu"
+    );
+  }
+
   // Check table availability - only CONFIRMED reservations block slots
   const start = new Date(startTime);
   const end = new Date(start.getTime() + durationMinutes * 60000);
