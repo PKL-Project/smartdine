@@ -59,6 +59,13 @@ RESEND_API_KEY="re_XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 EMAIL_FROM="auth@your-verified-domain.com"
 ```
 
+Utwórz plik `.env` w katalogu głównym:
+
+```env
+# Prisma
+DATABASE_URL="file:./dev.db"
+```
+
 > Upewnij się, że domena w `EMAIL_FROM` jest zweryfikowana w Resend.
 
 ### 3) Baza danych (Prisma + SQLite)
